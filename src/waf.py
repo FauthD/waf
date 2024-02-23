@@ -24,7 +24,8 @@ import yaml
 import threading
 import logging
 import time
-import pathlib
+import os
+# import pathlib
 
 from StatusLeds import *
 from IrReceiver import *
@@ -33,7 +34,7 @@ from Devices import *
 from Helpers import States,Modifier,timeout,watchclock
 
 CONFIGNAME='waf.yaml'
-LOGPATH='/var/log/waf/waf.log'
+LOGPATH='/var/log/waf.log'
 
 class Waf():
 	def __init__(self):
@@ -81,20 +82,24 @@ class Waf():
 	}
 
 	def ReadConfig(self, name=CONFIGNAME):
-		# first try in /etc
-		try:
-			path = pathlib.join('/etc', name)
-			with open(path, 'r') as file:
-				self.config = yaml.safe_load(file)
-		except:
-			# then in current dir
-			try:
-				with open(name, 'r') as file:
-					self.config = yaml.safe_load(file)
-			except Exception as e:
-				print(e)
+		pathlist = []
+		pathlist.append(os.path.join('~/.config', name))
+		pathlist.append(os.path.join('/etc', name))
+		pathlist.append(name)
+		for path in pathlist:
+			logging.debug(f'Try config file {path}')
+			if os.path.isfile(path):
+				try:
+					with open(name, 'r') as file:
+						self.config = yaml.safe_load(file)
+						if self.config is not None or len(self.config):
+							logging.debug(f'Using config file {path}')
+							break
+				except:
+					continue
+		if self.config is None or self.config is {}:
+			logging.debug(f'No config file {name} found')
 
-		# print(self.config)
 
 	def InstantiateClass(self, cfg:dict):
 		class_name = cfg.get('class', 'UnknownClass')
@@ -103,16 +108,16 @@ class Waf():
 			if instance:
 				ret = instance(cfg)
 			else:
-				print(f"Class '{class_name}' not found.")
+				logging.info(f"Class '{class_name}' not found.")
 				ret = None
 		except Exception as e:
-			print(f"{class_name} - {e}")
+			logging.info(f"{class_name} - {e}")
 			ret = None
 
 		return ret
 
 	def InstantiateDevices(self):
-		devices = self.config['devices']
+		devices = self.config.get('devices', None)
 		# print(type(devices), devices)
 		if isinstance(devices, dict):
 			keys = devices.keys()
@@ -124,28 +129,34 @@ class Waf():
 				# print (type(device), device)
 				self.devices.append(self.InstantiateClass(device))
 		else:
-			print("devices must be a dict (ensure to add a space after the :)")
+			logging.info("devices must exist and be a dict (ensure to add a space after the :)")
 
 	def InstantiateStatusLed(self):
-		cfg = self.config['status_led']
-		self.status_led = self.InstantiateClass(cfg)
-		#print(self.status_led)
+		cfg = self.config.get('status_led', None)
+		if isinstance(cfg, dict):
+			self.status_led = self.InstantiateClass(cfg)
+		else:
+			logging.info("status_led must exist and be a dict (ensure to add a space after the :)")
 
 	def InstantiateIrReceiver(self):
-		cfg = self.config['ir_receiver']
-		self.ir_receiver = self.InstantiateClass(cfg)
-		#print(self.ir_receiver)
+		cfg = self.config.get('ir_receiver', None)
+		if isinstance(cfg, dict):
+			self.ir_receiver = self.InstantiateClass(cfg)
+		else:
+			logging.info("ir_receiver must exist and be a dict (ensure to add a space after the :)")
 
 	def InstantiateIrBlaster(self):
-		cfg = self.config['ir_blaster']
-		self.ir_blaster = self.InstantiateClass(cfg)
-		#print(self.ir_blaster)
+		cfg = self.config.get('ir_blaster', None)
+		if isinstance(cfg, dict):
+			self.ir_blaster = self.InstantiateClass(cfg)
+		else:
+			logging.info("ir_blaster must exist and be a dict (ensure to add a space after the :)")
 
 	def Instantiate(self):
 		self.InstantiateDevices()
 		self.InstantiateStatusLed()
 		self.InstantiateIrReceiver()
-		self.InstantiateIrBlasternewmod()
+		self.InstantiateIrBlaster()
 
 	# this does not work, the variable (e.g. status_led is not used as a reference but  the value (which is None))
 	# def Instantiate(self):
@@ -160,8 +171,8 @@ class Waf():
 	# 	print(self.status_led)
 ###########################################
 	def InitDispatch(self):
-		self.dispatch_dict = self.config['dispatch']
-		self.mofifier_dict = self.config['dispatch_modifier']
+		self.dispatch_dict = self.config.get('dispatch', None)
+		self.mofifier_dict = self.config.get('dispatch_modifier', None)
 		# print(cfg)
 
 ###########################################
@@ -184,7 +195,7 @@ class Waf():
 			remote,key = ir_code.split()
 			modifier = self.mofifier_dict.get(key, None)
 		if modifier is None:
-			print(f"Unknown ir code {ir_code}")
+			logging.info(f"Unknown ir code {ir_code}")
 		else:
 			mod = self._Modifier.get(modifier, None)
 			if mod is not None:
@@ -213,7 +224,9 @@ class Waf():
 		check.append(self.mofifier_dict)
 		for i in check:
 			if i is None:
-				print(f'A variable is not properly instantiated')
+				logging.info(f'A variable is not properly instantiated. Check the config file.')
+				return False
+		return True
 
 ###########################################
 	def SetIrCommand(self, code):
@@ -265,11 +278,11 @@ def main():
 	c = Waf()
 	c.ReadConfig()
 	c.Instantiate()
-	c.Validate()
-	c.status_led.On()
-	c.InitDispatch()
-	#c.T()
-	print(globals())
+	if c.Validate():
+		c.status_led.On()
+		c.InitDispatch()
+		#c.T()
+	# print(globals())
 
 
 
