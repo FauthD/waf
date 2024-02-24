@@ -34,7 +34,7 @@ from .PanasonicBR import PanasonicBR
 class DevicesManager(Dispatcher):
 	'Manager for Devices'
 	def __init__(self):
-		#super().__init__()
+		super().__init__()
 		self.config = {}
 		self._devices = []
 		self.RX_Fifo = queue.Queue()
