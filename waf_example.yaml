@@ -1,0 +1,127 @@
+
+common: 
+  # Remote sends for a few millisec to long, so lets wait some time
+  REMOTE_CONTROL_TIME: 0.3
+
+devices:
+  vdr:
+    mac: '00:00:00:00:00:00'
+    name: 'vdr'
+    class: 'Vdr'
+    IR:
+      POWER_ON: mceusb KEY_POWER
+      POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
+
+  nas:
+    mac: '00:00:00:00:00:00'
+    name: 'eis'
+    class: 'Nas'
+
+  amp:
+    mac: '00:00:00:00:00:00'
+    name: "TX-NR509"
+    class: 'Onkyo'
+    ONKYO_PORT: 60128
+    ONKYO_TV_VOLUME: 45
+    ONKYO_BR_VOLUME: 28
+    ONKYO_DLNA_VOLUME: 21
+    ONKYO_FMRADIO_VOLUME: 28
+    ONKYO_IRADIO_VOLUME: 20
+    ONKYO_WII_VOLUME: 27
+    ONKYO_CROMECAST_VOLUME: 28
+    IR:
+      TOGGLE_MUTE: Onkyo_TX-NR509 ONKYO_MUTE
+      DLNA: Onkyo_TX-NR509 ONKYO_NET
+      CD: Onkyo_TX-NR509 ONKYO_TV_CD
+      BD: Onkyo_TX-NR509 ONKYO_BD_DVD
+      # FIXME: how to handle vol+,vol- ...SetIrCommand
+
+  tv:
+    mac: '00:00:00:00:00:00'
+    name: "TV-42LM670S-ZA"
+    class: 'LG_Netcast'
+    LGKEY: "123456"
+    LG_DEFAULT_VOLUME: 14
+    LG_TV_VOLUME: LG_DEFAULT_VOLUME
+    LG_TV_CROMECAST: LG_DEFAULT_VOLUME
+    LG_WII_VOLUME: 7
+    IR:
+      POWER_ON: LG_TV LG_POWERON
+      HDMI: LG_TV LG_HDMI
+      WII: LG_TV LG_COMPONENT1
+    INPUTS:
+      VDR: 4
+      # fixme: rest
+
+  blueray:
+    mac: '00:00:00:00:00:00'
+    name: 'BDP-150'
+    class: 'PanasonicBR'
+
+dispatch:
+    DF_C: dlna
+    MP3_3: dlna
+    WAF_DLNA: dlna
+    DF_B: movie
+    MP3_2: movie
+    WAF_MOVIE: movie
+    DF_A: tv
+    WAF_TV: tv
+    "OneForAll_URC7962_S1272 KEY_ZOOM": off
+    "OneForAll_URC6440_S1672 KEY_ZOOM": off
+    "OneForAll_URC7980_V0146 KEY_POWER": off
+    DF_POWER2: off
+    WAF_POWEROFF: off
+    DF_FAV: iradio
+    DF_VOL+: vol+
+    DF_VOL-: vol-
+    DF_CHANNELDOWN: chan-
+    DF_CHANNELUP: chan+
+    WAF_INETRADIO: iradio
+    WAF_RADIO: radio
+    WAF_CHROMECAST: chromecast
+    WAF_BLUERAY: blueray
+    WAF_TV2DLNA: tv2dlna
+    WAF_WII: wii
+    WAF_INETRADIO1: iradio1
+    WAF_INETRADIO2: iradio2
+    WAF_INETRADIO3: iradio3
+    WAF_INETRADIO4: iradio4
+    WAF_INETRADIO5: iradio5
+    WAF_INETRADIO6: iradio6
+    WAF_INETRADIO7: iradio7
+    WAF_INETRADIO8: iradio8
+    WAF_INETRADIO9: iradio9
+
+dispatch_modifier:
+    WAF_TOGGLEMUTE: togglemute
+    WAF_MUTE: mute
+    WAF_UNMUTE: unmute
+    DF_MUTE: togglemute
+    KEY_MUTE: togglemute
+    WAF_USESPEAKER: usespeaker
+
+remotes:
+  lirc:
+    class: lirc
+    tx: False
+    socket: /tmp/lircd
+  irmp:
+    class: irmp
+    device: /dev/irmp_stm32
+  dummy:
+    class: DummyReceiver
+
+status_led:
+  #class: DummyLed
+
+# class: BananaPiLed
+# GreenLed: 226    # BananaPro Pin7
+# GreenLedChip: "gpiochip0"
+# Consumer: "Waf"
+
+#    class: raspberrypi_led
+#    GreenLed: 4    # Raspberry
+  # class: IrmpLed
+  class: IrmpNeopixel
+  device: /dev/irmp_stm32
