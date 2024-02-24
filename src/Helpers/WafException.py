@@ -17,12 +17,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import *
 
-class DummyBlaster(IrBlaster):
-	'A dummy (noop) IR receiver'
-	def __init__(self, ir_blaster:dict):
-		super().__init__(ir_blaster)
-
-	def __del__(self):
-		pass
+class WafException(Exception):
+	pass

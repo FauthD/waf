@@ -17,11 +17,21 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-class IrReceiver():
-	def __init__(self, ir_receiver:dict):
-		# print(type(ir_receiver), ir_receiver)
-		if isinstance(ir_receiver, dict):
-			self.status_led = ir_receiver
-		else:
-			print("ir_receiver must be a dict (ensure to add a space after the :)")
+import logging
+import threading
 
+from Helpers import WafException
+
+class Remote():
+	def __init__(self, cfg:dict, RX_Fifo):
+		self.config = cfg
+		self.RX_Fifo = RX_Fifo
+		self.tx_enable = cfg.get('tx', True)
+		self.rx_enable = cfg.get('rx', True)
+
+	def Validate(self):
+		if self.config is None or len(self.config) == 0:
+			raise WafException("Remote: There is no config defined")
+
+	def Send(self, code):
+		pass

@@ -24,19 +24,17 @@ import time
 import logging
 import threading
 
-from Helpers import Timeout as timeout
-from Helpers import Watchclock as watchclock
-from Helpers import States,Modifier
+from Helpers import States,Modifier,Timeout,Watchclock
 
 class Device(threading.Thread):
 	'Base class for devices'
 	def __init__(self, dev_config:dict, maxtime=60):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
-		super().__init__(self, name=self._devicename)
+		super().__init__(name=self._devicename)
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
-		self._timeout = timeout.Timeout(maxtime)
-		self._start_time = watchclock.Watchclock()
+		self._timeout = Timeout(maxtime)
+		self._start_time = Watchclock()
 		self._oldstate = States.NONE
 		self._newstate = States.NONE
 		self._newmod = Modifier.NONE
@@ -50,6 +48,9 @@ class Device(threading.Thread):
 		self.start()
 
 ###########################################
+	def Validate(self):
+		pass
+	
 	def isBusy(self):
 		return not self._available.is_set()
 
@@ -96,10 +97,12 @@ class Device(threading.Thread):
 		self._start_time.Reset()
 		logging.debug('SetState {0} {1} {2}'.format(self.getName(), state))
 		self._available.wait()
+		self._work.acquire()
 		self._oldstate = self._newstate
 		self._newstate, self._StateParam = state
 		self._newmod = Modifier.NONE
 		self._work.notify()
+		self._work.release()
 		if not self.is_alive():
 			logging.debug('SetState {0} failed! Thread is dead.'.format(self.getName()))
 
@@ -107,60 +110,64 @@ class Device(threading.Thread):
 		self._start_time.Reset()
 		logging.debug(' SetModifier {0} {1} {2}'.format(self.getName(), mod))
 		self._available.wait()
+		self._work.acquire()
 		self._newmod, self._ModParam = mod
 		self._work.notify()
+		self._work.release()
 		if not self.is_alive():
 			logging.debug('SetModifier {0} failed! Thread is dead.'.format(self.getName()))
 
 	# runs as a thread
 	def run(self):
-		while self.newstate!=States.TERMINATE:
+		while self._newstate!=States.TERMINATE:
 			if self._newmod != Modifier.NONE:
 				self.work_modifier()
 			else:
 				self.work_state()
 
 			self._available.set()
+			self._work.acquire()
 			self._work.wait()
+			self._work.release()
 		logging.debug('thread {0} ended'.format(self.getName()))
 
 	# runs as a thread
 	def work_modifier(self):
-		logging.debug(' work_modifier {0} self.newmod {1}'.format(self.getName(), self.newmod))
-		if self.newmod==Modifier.MUTE:
+		logging.debug(' work_modifier {0} self._newmod {1}'.format(self.getName(), self._newmod))
+		if self._newmod==Modifier.MUTE:
 			self.GlobalMute()
-		elif self.newmod==Modifier.UNMUTE:
+		elif self._newmod==Modifier.UNMUTE:
 			self.GlobalUnMute()
-		elif self.newmod==Modifier.TOGGLEMUTE:
+		elif self._newmod==Modifier.TOGGLEMUTE:
 			self.ToggleGlobalMute()
-		elif self.newmod==Modifier.USESPEAKER:
+		elif self._newmod==Modifier.USESPEAKER:
 			self.UseSpeaker()
-		self._self.newmod = Modifier.NONE
+		self._self._newmod = Modifier.NONE
 
 	# runs as a thread
 	def work_state(self):
-		logging.debug(' work_state {0} self.newstate {1}'.format(self.getName(), self.newstate))
-		if self.newstate==States.OFF:
+		logging.debug(' work_state {0} self._newstate {1}'.format(self.getName(), self._newstate))
+		if self._newstate==States.OFF:
 			self.TurnOff()
-		elif self.newstate==States.WATCHTV:
+		elif self._newstate==States.WATCHTV:
 			self.WatchTV()
-		elif self.newstate==States.WATCHTVMOVIE:
+		elif self._newstate==States.WATCHTVMOVIE:
 			self.WatchTvMovie()
-		elif self.newstate==States.WATCHBRMOVIE:
+		elif self._newstate==States.WATCHBRMOVIE:
 			self.WatchBrMovie()
-		elif self.newstate==States.LISTENMUSICDLNA:
+		elif self._newstate==States.LISTENMUSICDLNA:
 			self.ListenMusic()
-		elif self.newstate==States.LISTENRADIO:
+		elif self._newstate==States.LISTENRADIO:
 			self.ListenRadio()
-		elif self.newstate==States.LISTENIRADIO:
+		elif self._newstate==States.LISTENIRADIO:
 			self.ListenIRadio()
-		elif self.newstate==States.CHROMECAST:
+		elif self._newstate==States.CHROMECAST:
 			self.WatchChromecast()
-		elif self.newstate==States.TV2DLNA:
+		elif self._newstate==States.TV2DLNA:
 			self.WatchDlnaOnTV()
-		elif self.newstate==States.WII:
+		elif self._newstate==States.WII:
 			self.PlayWii()
-		logging.debug(' Done {0} after {1:.1f} secs'.format(self.getName(), self.getTime()))
+		logging.debug(f' Done {0} after {1:.1f} secs'.format(self.getName(), self.getTime()))
 
 	def SetIrCommand(self, code):
 		pass

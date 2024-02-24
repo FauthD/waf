@@ -25,13 +25,11 @@ import threading
 import logging
 import time
 import os
-# import pathlib
 
-from StatusLeds import *
-from IrReceiver import *
-from IrBlaster import *
-from Devices import *
-from Helpers import States,Modifier,timeout,watchclock
+from StatusLeds import StatusLedsManager
+from Devices import DevicesManager
+from Remotes import RemotesManager
+from Helpers import States,Modifier,timeout,watchclock,WafException
 
 CONFIGNAME='waf.yaml'
 LOGPATH='/var/log/waf.log'
@@ -40,46 +38,11 @@ class Waf():
 	def __init__(self):
 		self.InitLogging()
 		self.config = None
-		self.devices = []
-		self.ir_receiver = None
-		self.status_led = None
-		self.ir_blaster = None
-		self.dispatch_dict = None
-		self.mofifier_dict = None
-		self.lock = threading.Lock()
+		self._devices = DevicesManager()
+		self._remotes = RemotesManager()
+		self._status_leds = StatusLedsManager()
 		self._time = watchclock.Watchclock()
 		self._mute = threading.Event()
-
-	# For now I keep the old two step translation table until I see how the states could be directly placed in the yaml
-	_States = {
-		'tv': ( States.WATCHTV, 0 ),
-		'movie' : ( States.WATCHTVMOVIE, 0 ),
-		'brmovie' : ( States.WATCHBRMOVIE, 0 ),
-		'dlna' : ( States.LISTENMUSICDLNA, 0 ),
-		'radio' : ( States.LISTENRADIO, 0 ),
-		'iradio' : ( States.LISTENIRADIO, 1 ),
-		'iradio1' : ( States.LISTENIRADIO, 1),
-		'iradio2' : ( States.LISTENIRADIO, 2,),
-		'iradio3' : ( States.LISTENIRADIO, 3,),
-		'iradio4' : ( States.LISTENIRADIO, 4,),
-		'iradio5' : ( States.LISTENIRADIO, 5,),
-		'iradio6' : ( States.LISTENIRADIO, 6,),
-		'iradio7' : ( States.LISTENIRADIO, 7,),
-		'iradio8' : ( States.LISTENIRADIO, 8),
-		'iradio9' : ( States.LISTENIRADIO, 9,),
-		'off' : ( States.OFF, 0 ),
-		'chromecast' : ( States.CHROMECAST, 0 ),
-		'blueray' : ( States.WATCHBRMOVIE, 0 ),
-		'tv2dlna' : ( States.TV2DLNA, 0 ),
-		'wii' : ( States.WII, 0 ),
-	}
-
-	_Modifier = {
-		'usespeaker' : ( Modifier.USESPEAKER, 0 ),
-		'mute' : ( Modifier.MUTE, 0 ),
-		'unmute' : ( Modifier.UNMUTE, 0 ),
-		'togglemute' : ( Modifier.TOGGLEMUTE, 0 ),
-	}
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
@@ -100,133 +63,24 @@ class Waf():
 		if self.config is None or self.config is {}:
 			logging.debug(f'No config file {name} found')
 
-
-	def InstantiateClass(self, cfg:dict):
-		class_name = cfg.get('class', 'UnknownClass')
-		instance = globals().get(class_name)
-		try:
-			if instance:
-				ret = instance(cfg)
-			else:
-				logging.info(f"Class '{class_name}' not found.")
-				ret = None
-		except Exception as e:
-			logging.info(f"{class_name} - {e}")
-			ret = None
-
-		return ret
-
-	def InstantiateDevices(self):
-		devices = self.config.get('devices', None)
-		# print(type(devices), devices)
-		if isinstance(devices, dict):
-			keys = devices.keys()
-			#print(keys)
-			for k in keys:
-				device = devices[k]
-				if 'name' not in device:
-					device['name'] = k
-				# print (type(device), device)
-				self.devices.append(self.InstantiateClass(device))
-		else:
-			logging.info("devices must exist and be a dict (ensure to add a space after the :)")
-
-	def InstantiateStatusLed(self):
-		cfg = self.config.get('status_led', None)
-		if isinstance(cfg, dict):
-			self.status_led = self.InstantiateClass(cfg)
-		else:
-			logging.info("status_led must exist and be a dict (ensure to add a space after the :)")
-
-	def InstantiateIrReceiver(self):
-		cfg = self.config.get('ir_receiver', None)
-		if isinstance(cfg, dict):
-			self.ir_receiver = self.InstantiateClass(cfg)
-		else:
-			logging.info("ir_receiver must exist and be a dict (ensure to add a space after the :)")
-
-	def InstantiateIrBlaster(self):
-		cfg = self.config.get('ir_blaster', None)
-		if isinstance(cfg, dict):
-			self.ir_blaster = self.InstantiateClass(cfg)
-		else:
-			logging.info("ir_blaster must exist and be a dict (ensure to add a space after the :)")
-
+###########################################
 	def Instantiate(self):
-		self.InstantiateDevices()
-		self.InstantiateStatusLed()
-		self.InstantiateIrReceiver()
-		self.InstantiateIrBlaster()
-
-	# this does not work, the variable (e.g. status_led is not used as a reference but  the value (which is None))
-	# def Instantiate(self):
-	# 	classes = {
-	# 		'status_led': [self.status_led],
-	# 		'ir_receiver': [self.ir_receiver],
-	# 		'ir_blaster': [self.ir_blaster],
-	# 	}
-	# 	for key,v in classes.items():
-	# 		cfg = self.config[key]
-	# 		v[0] = self.InstantiateClass(cfg)
-	# 	print(self.status_led)
-###########################################
-	def InitDispatch(self):
-		self.dispatch_dict = self.config.get('dispatch', None)
-		self.mofifier_dict = self.config.get('dispatch_modifier', None)
-		# print(cfg)
-
-###########################################
-	def Dispatch(self, ir_code:str):
-		cmd = self.dispatch_dict.get(ir_code, None)
-		if cmd is None:
-			remote,key = ir_code.split()
-			cmd = self.dispatch_dict.get(key, None)
-		if cmd is None:
-			self.DispatchModifier(ir_code)
-		else:
-			state = self._States.get(cmd, None)
-			if state is not None:
-				self.SetState(state)
-
-###########################################
-	def DispatchModifier(self, ir_code:str):
-		modifier = self.mofifier_dict.get(ir_code, None)
-		if modifier is None:
-			remote,key = ir_code.split()
-			modifier = self.mofifier_dict.get(key, None)
-		if modifier is None:
-			logging.info(f"Unknown ir code {ir_code}")
-		else:
-			mod = self._Modifier.get(modifier, None)
-			if mod is not None:
-				self.SetModifier(mod)
-
-###########################################
-	def SetState(self, state):
-		with self.lock:
-			for device in self.devices:
-				device.SetState(state)
-
-###########################################
-	def SetModifier(self, modifier):
-		with self.lock:
-			for device in self.devices:
-				device.SetModifier(modifier)
+		self._devices.Instantiate(self.config)
+		self._remotes.Instantiate(self.config)
+		self._status_leds.Instantiate(self.config)
 
 ###########################################
 	def Validate(self):
-		check = []
-		check.append(self.devices)
-		check.append(self.status_led)
-		check.append(self.ir_receiver)
-		check.append(self.ir_blaster)
-		check.append(self.dispatch_dict)
-		check.append(self.mofifier_dict)
-		for i in check:
-			if i is None:
-				logging.info(f'A variable is not properly instantiated. Check the config file.')
-				return False
-		return True
+		try:
+			self._devices.Validate()
+			self._remotes.Validate()
+			self._status_leds.Validate()
+			ret = True
+		except WafException as e:
+			logging.debug(e)
+			ret = False
+		return ret
+
 
 ###########################################
 	def SetIrCommand(self, code):
@@ -254,11 +108,11 @@ class Waf():
 	def WaitFinish(self):
 		logging.debug(' WaitFinish started after {0:.1f} secs'.format(self.getTime()))
 		to = timeout.Timeout(70)
-		Busy = self.NumBusy()
+		Busy = self.NumBusy() + 10
 		while Busy > 0:
-			self.green_led.Toggle()
+			self.green_led.Toggle()	FIXME
 			time.sleep(Busy/4)
-			Busy = self.NumBusy()
+			Busy = self.NumBusy() +2
 			if to.isExpired():
 				logging.debug('WaitFinish aborted {0:.1f} secs'.format(self.getTime()))
 				self.ShowBusy()
@@ -278,10 +132,10 @@ def main():
 	c = Waf()
 	c.ReadConfig()
 	c.Instantiate()
+	c.InitDispatch()
 	if c.Validate():
-		c.status_led.On()
-		c.InitDispatch()
-		#c.T()
+		#c.status_led.On()
+		c.WaitFinish()
 	# print(globals())
 
 

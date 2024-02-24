@@ -17,12 +17,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import *
+import Remote
 
-class DummyReceiver(IrReceiver):
-	'A dummy (noop) IR receiver'
-	def __init__(self, ir_receiver:dict):
-		super().__init__(ir_receiver)
+class DummyRemote(Remote):
+	'A dummy (noop) IR transceiver'
+	def __init__(self, cfg:dict):
+		super().__init__(cfg)
 
-	def __del__(self):
-		pass
+	# def __del__(self):
+	# 	pass
+
