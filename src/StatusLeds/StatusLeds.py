@@ -23,21 +23,25 @@ import logging
 import threading
 from Helpers import States,Modifier,Timeout,Watchclock,WafException
 
+from .BananaPiLed import BananaPiLed
+from .DummyLed import DummyLed
+from .IrmpLed import IrmpLed
+from .IrmpNeopixel import IrmpNeopixel
+
 class StatusLedsManager(object):
 	'Manager for Status Leds'
-	def __init__(self, dev_config:dict):
-		print(f"{dev_config}")
+	def __init__(self):
 		super().__init__()
-		self.config = None
+		self.cfg = None
 		self._devices = []
 
 ###########################################
-	def InstantiateClass(self, cfg:dict):
-		class_name = cfg.get('class', 'UnknownClass')
+	def InstantiateClass(self):
+		class_name = self.cfg.get('class', 'UnknownClass')
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg)
+				ret = instance(self.cfg)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -47,13 +51,22 @@ class StatusLedsManager(object):
 
 		return ret
 
-	def Instantiate(self, config):
-		cfg = config.get('status_led', None)
-		if isinstance(cfg, dict):
-			self.status_led = self.InstantiateClass(cfg)
+	def Init(self, config):
+		self.cfg = config.get('status_led', None)
+		if isinstance(self.cfg, dict):
+			self.status_led = self.InstantiateClass()
 		else:
 			logging.info("status_led must exist and be a dict (ensure to add a space after the :)")
 
 	def Validate(self):
 		if self.status_led is None:
 			raise WafException("StatusLedsManager: There is no status led defined")
+
+	def Off(self):
+		self.status_led.Off()
+
+	def On(self):
+		self.status_led.On()
+
+	def Toggle(self):
+		self.status_led.Toggle()

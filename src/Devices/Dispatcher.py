@@ -25,14 +25,13 @@ import threading
 
 from Helpers import States,Modifier,timeout,watchclock
 
-class Dispatcher(object):
+class Dispatcher():
 	'Dispatch IR codes to device classes'
-	def __init__(self, dev_config:dict):
-		self.config = dev_config
+	def __init__(self):
+		self.config = {}
 		self.lock = threading.Lock()
-		self.dispatch_dict = None
-		self.mofifier_dict = None
-		self.InitDispatch()
+		self.dispatch_dict = {}
+		self.mofifier_dict = {}
 		
 	# For now I keep the old two step translation table until I see how the states could be directly placed in the yaml
 	_States = {
@@ -71,6 +70,15 @@ class Dispatcher(object):
 		self.mofifier_dict = self.config.get('dispatch_modifier', None)
 		# print(cfg)
 
+###########################################
+	def Init(self, config:dict):
+		self.config = config
+		dispatch = config.get('dispatch', None)
+		# print(type(devices), devices)
+		if isinstance(dispatch, dict):
+			self.InitDispatch()
+		else:
+			logging.info("dispatch must exist and be a dict (ensure to add a space after the :)")
 ###########################################
 	def Validate(self):
 		if self.dispatch_dict is None:

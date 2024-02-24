@@ -6,5 +6,6 @@ from . Onkyo import Onkyo
 from . LG_Netcast import LG_Netcast
 from . PanasonicBR import PanasonicBR
 from . Devices import DevicesManager
+from . Dispatcher import Dispatcher
 
-__all__ = ["Device", "Vdr", "Nas", "Onkyo", "LG_Netcast", "PanasonicBR", "VdrOnboard", "DevicesManager"]
+__all__ = ["Device", "Dispatcher", "Vdr", "Nas", "Onkyo", "LG_Netcast", "PanasonicBR", "VdrOnboard", "DevicesManager"]

@@ -21,18 +21,24 @@
 import time
 import logging
 import threading
-from Helpers import States,Modifier,Timeout,Watchclock,WafException
-import Dispatcher
+import queue
+from Helpers import WafException
+from .Dispatcher import Dispatcher
+from .Vdr import Vdr
+from .VdrOnboard import VdrOnboard
+from .Nas import Nas
+from .LG_Netcast import LG_Netcast
+from .Onkyo import Onkyo
+from .PanasonicBR import PanasonicBR
 
 class DevicesManager(Dispatcher):
 	'Manager for Devices'
-	def __init__(self, dev_config:dict):
-		print(f"{dev_config}")
-		super().__init__(dev_config)
-		self.config = None
+	def __init__(self):
+		#super().__init__()
+		self.config = {}
 		self._devices = []
-		self.RX_Fifo = threading.queue()
-		self.TX_Fifo = threading.queue()
+		self.RX_Fifo = queue.Queue()
+		self.TX_Fifo = queue.Queue()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -51,7 +57,8 @@ class DevicesManager(Dispatcher):
 		return ret
 
 ###########################################
-	def Instantiate(self, config):
+	def Init(self, config:dict):
+		super().Init(config)
 		devices = config.get('devices', None)
 		# print(type(devices), devices)
 		if isinstance(devices, dict):
@@ -61,7 +68,7 @@ class DevicesManager(Dispatcher):
 				device = devices[k]
 				if 'name' not in device:
 					device['name'] = k
-				logging.info (f"InstantiateDevices: {k}")
+				logging.info (f"Init Devices: {k}")
 				self._devices.append(self.InstantiateClass(device))
 		else:
 			logging.info("devices must exist and be a dict (ensure to add a space after the :)")
@@ -72,16 +79,33 @@ class DevicesManager(Dispatcher):
 		if self._devices is None or len(self._devices) == 0:
 			raise WafException("DevicesManager: There is no device defined")
 		for device in self._devices:
-			device.Validate()
+			if device is not None:
+				device.Validate()
+			else:
+				raise WafException("DevicesManager: A remote control is None")
 
 ###########################################
 	def SetState(self, state):
 		with self.lock:
 			for device in self._devices:
-				device.SetState(state)
+				if device is not None:
+					device.SetState(state)
 
 ###########################################
 	def SetModifier(self, modifier):
 		with self.lock:
 			for device in self._devices:
-				device.SetModifier(modifier)
+				if device is not None:
+					device.SetModifier(modifier)
+
+	def NumBusy(self):
+		Busy = 0
+		for device in self._devices:
+			Busy += device.isBusy()
+		return Busy
+
+	def ShowBusy(self):
+		for device in self._devices:
+			if device.isBusy():
+				logging.debug(f'Still busy: {device.getName()}, breaking it')
+				device.ResetBusy()

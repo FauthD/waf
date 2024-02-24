@@ -21,18 +21,20 @@
 import time
 import logging
 import threading
+import queue
 from Helpers import WafException
-#import lirc,irmp
+from .lirc import lirc
+from .irmp import irmp
+from .DummyRemote import DummyRemote
 
-class RemotesManager(object):
+class RemotesManager():
 	'Manager for Remotes'
-	def __init__(self, dev_config:dict):
-		print(f"{dev_config}")
+	def __init__(self):
 		super().__init__()
-		self.config = None
+		# self.config = None
 		self._remotes = []
-		self.RX_Fifo = threading.queue()
-		self.TX_Fifo = threading.queue()
+		self.RX_Fifo = queue.Queue()
+		self.TX_Fifo = queue.Queue()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -50,7 +52,7 @@ class RemotesManager(object):
 
 		return ret
 
-	def Instantiate(self, config):
+	def Init(self, config):
 		remotes = config.get('remotes', None)
 		# print(type(devices), devices)
 		if isinstance(remotes, dict):
@@ -60,7 +62,7 @@ class RemotesManager(object):
 				remote = remotes[k]
 				if 'name' not in remote:
 					remote['name'] = k
-				logging.info (f"InstantiateRemotes: {k}")
+				logging.info (f"Init Remotes: {k}")
 				self._remotes.append(self.InstantiateClass(remote))
 		else:
 			logging.info("remotes must exist and be a dict (ensure to add a space after the :)")
@@ -70,7 +72,10 @@ class RemotesManager(object):
 			raise WafException("RemotesManager: There is no remote control defined")
 
 		for remote in self._remotes:
-			remote.Validate()
+			if remote is not None:
+				remote.Validate()
+			else:
+				raise WafException("RemotesManager: A remote control is None")
 
 ###########################################
 	def Send(self, code):

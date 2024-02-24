@@ -17,8 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import StatusLed
 import Irmp
+from . StatusLed import StatusLed
 
 NUM_PIXEL=8
 

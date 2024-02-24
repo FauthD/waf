@@ -17,8 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import StatusLed
 import gpiod
+from . StatusLed import StatusLed
 
 class BananaPiLed(StatusLed):
 	'BananaPi Gpio handler'

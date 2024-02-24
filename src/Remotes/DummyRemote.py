@@ -17,12 +17,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import Remote
+import queue
+
+from . Remote import Remote
 
 class DummyRemote(Remote):
 	'A dummy (noop) IR transceiver'
-	def __init__(self, cfg:dict):
-		super().__init__(cfg)
+	def __init__(self, cfg:dict, RX_Fifo:queue):
+		super().__init__(cfg, RX_Fifo)
 
 	# def __del__(self):
 	# 	pass

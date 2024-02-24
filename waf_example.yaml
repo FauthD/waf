@@ -110,7 +110,7 @@ remotes:
     class: irmp
     device: /dev/irmp_stm32
   dummy:
-    class: DummyReceiver
+    class: DummyRemote
 
 status_led:
   #class: DummyLed

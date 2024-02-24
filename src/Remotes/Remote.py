@@ -19,11 +19,12 @@
 
 import logging
 import threading
+import queue
 
 from Helpers import WafException
 
 class Remote():
-	def __init__(self, cfg:dict, RX_Fifo):
+	def __init__(self, cfg:dict, RX_Fifo:queue):
 		self.config = cfg
 		self.RX_Fifo = RX_Fifo
 		self.tx_enable = cfg.get('tx', True)

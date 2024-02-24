@@ -58,7 +58,7 @@ class Pixel:
 Pixels = [Pixel() for i in range(NUM_PIXEL+1)]
 
 class IrmpHidRaw():
-	def __init__(self, device_path=DefaultIrmpDevPath, map:str=DEFAULT_MAPFILE, mapdir:str=DEFAULT_MAPDIR):
+	def __init__(self, device_path:str=DefaultIrmpDevPath, map:str=DEFAULT_MAPFILE, mapdir:str=DEFAULT_MAPDIR):
 		self._device_path = device_path
 		self._hidraw_fd = None
 		self._buffer_size=REPORT_SIZE

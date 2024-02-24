@@ -22,18 +22,19 @@ import threading
 import time
 import os
 import socket
-import enum as Enum
+import queue
+from enum import Enum
 
-import Remote
 from Helpers import WafException
+from . Remote import Remote
 
 class lirc(Remote):
 	'Send/receive IR codes with lirc'
-	def __init__(self, cfg:dict):
-		super().__init__(cfg)
+	def __init__(self, cfg:dict, RX_Fifo:queue):
+		super().__init__(cfg, RX_Fifo)
 		self.socket_path = cfg.get('socket', '/run/lirc/lircd')
 		self.receiver = LircReceiver(self.socket_path, self.RX_Fifo, self.rx_enable)
-		self.transmitter = LircReceiver(self.socket_path)
+		self.transmitter = LircTransmitter(self.socket_path)
 
 	def Send(self, code):
 		if not self.tx:

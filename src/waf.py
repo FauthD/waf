@@ -27,9 +27,9 @@ import time
 import os
 
 from StatusLeds import StatusLedsManager
-from Devices import DevicesManager
 from Remotes import RemotesManager
-from Helpers import States,Modifier,timeout,watchclock,WafException
+from Devices import DevicesManager
+from Helpers import timeout,watchclock,WafException
 
 CONFIGNAME='waf.yaml'
 LOGPATH='/var/log/waf.log'
@@ -64,10 +64,10 @@ class Waf():
 			logging.debug(f'No config file {name} found')
 
 ###########################################
-	def Instantiate(self):
-		self._devices.Instantiate(self.config)
-		self._remotes.Instantiate(self.config)
-		self._status_leds.Instantiate(self.config)
+	def Init(self):
+		self._devices.Init(self.config)
+		self._remotes.Init(self.config)
+		self._status_leds.Init(self.config)
 
 ###########################################
 	def Validate(self):
@@ -81,11 +81,10 @@ class Waf():
 			ret = False
 		return ret
 
-
 ###########################################
-	def SetIrCommand(self, code):
-		for device in self._devices:
-			device.SetIrCommand(code)
+	# def SetIrCommand(self, code):
+	# 	for device in self._devices:
+	# 		device.SetIrCommand(code)
 
 	def getTime(self):
 		return self._time.getTime()
@@ -94,25 +93,19 @@ class Waf():
 		return self.NumBusy() > 0
 
 	def NumBusy(self):
-		Busy = 0
-		for device in self._devices:
-			Busy += device.isBusy()
-		return Busy
+		return self._devices.NumBusy()
 
 	def ShowBusy(self):
-		for device in self._devices:
-			if device.isBusy():
-				logging.debug('Still busy: {0}, breaking it'.format(device.getName()))
-				device.ResetBusy()
+		self._devices.ShowBusy()
 
 	def WaitFinish(self):
 		logging.debug(' WaitFinish started after {0:.1f} secs'.format(self.getTime()))
 		to = timeout.Timeout(70)
-		Busy = self.NumBusy() + 10
+		Busy = self.NumBusy()
 		while Busy > 0:
-			self.green_led.Toggle()	FIXME
+			self._status_leds.Toggle()
 			time.sleep(Busy/4)
-			Busy = self.NumBusy() +2
+			Busy = self.NumBusy()
 			if to.isExpired():
 				logging.debug('WaitFinish aborted {0:.1f} secs'.format(self.getTime()))
 				self.ShowBusy()
@@ -131,8 +124,7 @@ class Waf():
 def main():
 	c = Waf()
 	c.ReadConfig()
-	c.Instantiate()
-	c.InitDispatch()
+	c.Init()
 	if c.Validate():
 		#c.status_led.On()
 		c.WaitFinish()
@@ -142,3 +134,4 @@ def main():
 
 if __name__ == "__main__":
 	exit ( main() )
+

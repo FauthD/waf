@@ -19,22 +19,19 @@
 
 import logging
 import threading
-import Remote
+import queue
 
 import Irmp
 from Helpers import WafException
+from . Remote import Remote
 
 ###########################################
 class irmp(Remote):
 	'Send/receive IR codes with irmp'
-	def __init__(self, cfg:dict):
-		super().__init__(cfg)
+	def __init__(self, cfg:dict, RX_Fifo:queue):
+		super().__init__(cfg, RX_Fifo)
 		self.device = cfg.get('device', '/dev/irmp_stm32')
 		self._irmp = IrmpConnector(self.device, self.RX_Fifo, self.rx_enable)
-		self._irmp.open()
-
-	def __del__(self):
-		self._irmp.close()
 
 ###########################################
 	def Send(self, code):
@@ -54,12 +51,16 @@ class irmp(Remote):
 ##############################################
 class IrmpConnector(Irmp.IrmpHidRaw):
 	def __init__(self, device, RX_Fifo, rx_enable):
-		super().__init__(self, device)
+		super().__init__(device)
 		self.RX_Fifo = RX_Fifo
 		self.rx_enable = rx_enable
+		self.open()
 		self.RxThread = threading.Thread(target=self.ReadIr, args=())
 		self.RxThread.setDaemon(True)
 		self.RxThread.start()
+
+	def __del__(self):
+		self.close()
 
 ##############################################
 	# callback from IrmpHidRaw (ReadIr thread)

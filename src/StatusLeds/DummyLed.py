@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import StatusLed
+from . StatusLed import StatusLed
 
 class DummyLed(StatusLed):
 	'A dummy (noop) led handler'
