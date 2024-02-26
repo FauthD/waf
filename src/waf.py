@@ -65,13 +65,18 @@ class Waf():
 
 ###########################################
 	def Init(self):
-		self._devices.Init(self.config)
-		self._remotes.Init(self.config)
-		self._status_leds.Init(self.config)
+		self.ReadConfig()
+		if self.config is not None:
+			self._devices.Init(self.config)
+			self._remotes.Init(self.config)
+			self._status_leds.Init(self.config)
+		return self.Validate()
 
 ###########################################
 	def Validate(self):
 		try:
+			if self.config is None:
+				raise WafException(f'No config available')
 			self._devices.Validate()
 			self._remotes.Validate()
 			self._status_leds.Validate()
@@ -99,7 +104,7 @@ class Waf():
 		self._devices.ShowBusy()
 
 	def WaitFinish(self):
-		logging.debug(' WaitFinish started after {0:.1f} secs'.format(self.getTime()))
+		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
 		to = timeout.Timeout(70)
 		Busy = self.NumBusy()
 		while Busy > 0:
@@ -107,7 +112,7 @@ class Waf():
 			time.sleep(Busy/4)
 			Busy = self.NumBusy()
 			if to.isExpired():
-				logging.debug('WaitFinish aborted {0:.1f} secs'.format(self.getTime()))
+				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
 				self.ShowBusy()
 				break
 
@@ -116,18 +121,27 @@ class Waf():
 		logging.debug('=== Start ===')
 
 	def Clean(self):
-		logging.debug('Clean after {0:.1f} secs'.format(self.getTime()))
-		self.green_led.Off()
+		logging.debug(f'Clean after {self.getTime():.1f} secs')
+		self._status_leds.Off()
 
 ###########################################
+	def Doit(self):
+		while True:
+			code = self._remotes.GetRemoteCode()
+			self._time.Reset()
+			self._mute.clear()
+			self._devices.Dispatch(code)
+			self.WaitFinish()
+			self.Clean()
+
 
 def main():
 	c = Waf()
-	c.ReadConfig()
 	c.Init()
 	if c.Validate():
 		#c.status_led.On()
-		c.WaitFinish()
+		c.Doit()
+
 	# print(globals())
 
 

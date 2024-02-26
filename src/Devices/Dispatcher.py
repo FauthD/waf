@@ -79,6 +79,7 @@ class Dispatcher():
 			self.InitDispatch()
 		else:
 			logging.info("dispatch must exist and be a dict (ensure to add a space after the :)")
+
 ###########################################
 	def Validate(self):
 		if self.dispatch_dict is None:
@@ -87,30 +88,42 @@ class Dispatcher():
 			logging.error("There is no mofifier_dict defined")
 
 ###########################################
-	def Dispatch(self, ir_code:str):
-		cmd = self.dispatch_dict.get(ir_code, None)
-		if cmd is None:
-			remote,key = ir_code.split()
-			cmd = self.dispatch_dict.get(key, None)
-		if cmd is None:
-			self.DispatchModifier(ir_code)
+	def Split(self, code:str):
+		if ' ' in code:
+			remote_key = code.split()
 		else:
-			state = self._States.get(cmd, None)
-			if state is not None:
-				self.SetState(state)
+			remote_key = ['',code]
+		return remote_key
+
+###########################################
+	#'15000f04c300 0 15000f04c300 IRMP'
+	def Translate(self, ir_code:str, xlate:dict):
+		code,repeat,key,remote = self.Split(ir_code)
+		cmd = xlate.get(f'{remote} {key}', None)
+		if cmd is None:
+			cmd = xlate.get(key, None)
+		return (cmd,int(repeat))
+
+###########################################
+	def Dispatch(self, ir_code:str):
+		cmd,repeat = self.Translate(ir_code, self.dispatch_dict)
+		if not repeat:
+			if cmd:
+				state = self._States.get(cmd, None)
+				if state is not None:
+					self.SetState(state)
+			else:
+				self.DispatchModifier(ir_code)
 
 ###########################################
 	def DispatchModifier(self, ir_code:str):
-		modifier = self.mofifier_dict.get(ir_code, None)
-		if modifier is None:
-			remote,key = ir_code.split()
-			modifier = self.mofifier_dict.get(key, None)
-		if modifier is None:
-			logging.info(f"Unknown ir code {ir_code}")
-		else:
+		modifier,_ = self.Translate(ir_code, self.mofifier_dict)
+		if modifier is not None:
 			mod = self._Modifier.get(modifier, None)
 			if mod is not None:
 				self.SetModifier(mod)
+		else:
+			logging.info(f"Unknown ir code {ir_code}")
 
 ###########################################
 	def SetState(self, state):
