@@ -23,8 +23,10 @@
 import yaml
 import threading
 import logging
+import queue
 import time
 import os
+import systemd_stopper
 
 from Remotes import RemotesManager
 from Devices import DevicesManager
@@ -39,6 +41,7 @@ class Waf():
 		self.config = None
 		self._devices = DevicesManager()
 		self._remotes = RemotesManager()
+		self.stopper = systemd_stopper.install()
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
@@ -93,17 +96,27 @@ class Waf():
 
 ###########################################
 	def Work(self):
-		while True:
-			code = self._remotes.GetRemoteCode()	# blocking call
-			self._devices.Dispatch(code)
-
-		logging.debug('=== Stop ===')
+		timeout = 0.5
+		try:
+			if self.Init():
+				while self.stopper.run:
+					try:
+						code = self._remotes.GetRemoteCode(timeout)
+					except queue.Empty as empty:
+						continue
+					else:
+						self._devices.Dispatch(code)
+		except IOError as ex:
+			print(f'{ex}')
+		except Exception as ex:
+			print(f'{ex}')
+		finally:
+			logging.debug('=== Stop ===')
 
 
 def main():
 	c = Waf()
-	if c.Init():
-		c.Work()
+	c.Work()
 	# print(globals())
 
 

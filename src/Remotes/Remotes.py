@@ -89,6 +89,6 @@ class RemotesManager():
 
 ###########################################
 	# This is a blocking call
-	def GetRemoteCode(self):
-		return self.RX_Fifo.get()
+	def GetRemoteCode(self, timeout):
+		return self.RX_Fifo.get(timeout=timeout)
 
