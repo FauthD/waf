@@ -26,7 +26,6 @@ import logging
 import time
 import os
 
-from StatusLeds import StatusLedsManager
 from Remotes import RemotesManager
 from Devices import DevicesManager
 from Helpers import timeout,watchclock,WafException
@@ -40,9 +39,6 @@ class Waf():
 		self.config = None
 		self._devices = DevicesManager()
 		self._remotes = RemotesManager()
-		self._status_leds = StatusLedsManager()
-		self._time = watchclock.Watchclock()
-		self._mute = threading.Event()
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
@@ -70,7 +66,6 @@ class Waf():
 			if self.config is not None:
 				self._devices.Init(self.config)
 				self._remotes.Init(self.config)
-				self._status_leds.Init(self.config)
 				ret = True
 		except Exception as e:
 			logging.error(e)
@@ -86,60 +81,23 @@ class Waf():
 				raise WafException(f'No config available')
 			self._devices.Validate()
 			self._remotes.Validate()
-			self._status_leds.Validate()
 			ret = True
 		except WafException as e:
 			logging.debug(e)
 			ret = False
 		return ret
 
-###########################################
-	# def SetIrCommand(self, code):
-	# 	for device in self._devices:
-	# 		device.SetIrCommand(code)
-
-	def getTime(self):
-		return self._time.getTime()
-
-	def isBusy(self):
-		return self.NumBusy() > 0
-
-	def NumBusy(self):
-		return self._devices.NumBusy()
-
-	def ShowBusy(self):
-		self._devices.ShowBusy()
-
-	def WaitFinish(self):
-		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
-		to = timeout.Timeout(70)
-		Busy = self.NumBusy()
-		while Busy > 0:
-			self._status_leds.Toggle()
-			time.sleep(Busy/4)
-			Busy = self.NumBusy()
-			if to.isExpired():
-				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
-				self.ShowBusy()
-				break
-
 	def InitLogging(self):
 		logging.basicConfig(filename=LOGPATH, format='%(asctime)s.%(msecs)03d %(message)s', datefmt='%Y/%m/%d %H:%M:%S', level=logging.DEBUG)
 		logging.debug('=== Start ===')
 
-	def Clean(self):
-		logging.debug(f'Clean after {self.getTime():.1f} secs')
-		self._status_leds.Off()
-
 ###########################################
 	def Work(self):
 		while True:
-			code = self._remotes.GetRemoteCode()
-			self._time.Reset()
-			self._mute.clear()
+			code = self._remotes.GetRemoteCode()	# blocking call
 			self._devices.Dispatch(code)
-			self.WaitFinish()
-			self.Clean()
+
+		logging.debug('=== Stop ===')
 
 
 def main():

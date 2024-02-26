@@ -70,6 +70,7 @@ class Dispatcher():
 		state,repeat = self.TranslateIR(ir_code)
 		if not repeat:
 			if state:
+				logging.debug(f'=== code={state} ===')
 				self.SetState(state)
 			else:
 				logging.info(f"Unknown ir code {ir_code}")
