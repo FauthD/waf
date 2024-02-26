@@ -91,13 +91,6 @@ class DevicesManager(Dispatcher):
 				if device is not None:
 					device.SetState(state)
 
-###########################################
-	def SetModifier(self, modifier):
-		with self.lock:
-			for device in self._devices:
-				if device is not None:
-					device.SetModifier(modifier)
-
 	def NumBusy(self):
 		Busy = 0
 		for device in self._devices:

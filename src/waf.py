@@ -65,12 +65,19 @@ class Waf():
 
 ###########################################
 	def Init(self):
-		self.ReadConfig()
-		if self.config is not None:
-			self._devices.Init(self.config)
-			self._remotes.Init(self.config)
-			self._status_leds.Init(self.config)
-		return self.Validate()
+		try:
+			self.ReadConfig()
+			if self.config is not None:
+				self._devices.Init(self.config)
+				self._remotes.Init(self.config)
+				self._status_leds.Init(self.config)
+				ret = True
+		except Exception as e:
+			logging.error(e)
+			ret = False
+		if ret:
+			ret = self.Validate()
+		return ret
 
 ###########################################
 	def Validate(self):
@@ -125,7 +132,7 @@ class Waf():
 		self._status_leds.Off()
 
 ###########################################
-	def Doit(self):
+	def Work(self):
 		while True:
 			code = self._remotes.GetRemoteCode()
 			self._time.Reset()
@@ -137,11 +144,8 @@ class Waf():
 
 def main():
 	c = Waf()
-	c.Init()
-	if c.Validate():
-		#c.status_led.On()
-		c.Doit()
-
+	if c.Init():
+		c.Work()
 	# print(globals())
 
 

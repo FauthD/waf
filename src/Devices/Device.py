@@ -37,9 +37,6 @@ class Device(threading.Thread):
 		self._start_time = Watchclock()
 		self._oldstate = States.NONE
 		self._newstate = States.NONE
-		self._newmod = Modifier.NONE
-		self._StateParam=0
-		self._ModParam=0
 		self._work = threading.Condition()
 		self._available = threading.Event()
 		self._On = False
@@ -95,36 +92,44 @@ class Device(threading.Thread):
 
 	def SetState(self, state):
 		self._start_time.Reset()
-		logging.debug(f'SetState {self.getName()} {state}')
+		logging.debug(f'SetState {self.getName()}: {state}')
 		self._available.wait()
 		self._work.acquire()
-		self._oldstate = self._newstate
-		self._newstate, self._StateParam = state
-		self._newmod = Modifier.NONE
+		# do not update oldstate for modifiere keys (e.g. mute)
+		if state in States:
+			self._oldstate = self._newstate
+		self._newstate = state
 		self._work.notify()
 		self._work.release()
 		if not self.is_alive():
 			logging.debug(f'SetState {self.getName()} failed! Thread is dead.')
 
-	def SetModifier(self, mod):
-		self._start_time.Reset()
-		logging.debug(f'SetModifier {self.getName()} {mod}')
-		self._available.wait()
-		self._work.acquire()
-		self._newmod, self._ModParam = mod
-		self._work.notify()
-		self._work.release()
-		if not self.is_alive():
-			logging.debug(f'SetModifier {self.getName()} failed! Thread is dead.')
-
 	# runs as a thread
 	def run(self):
 		while self._newstate!=States.TERMINATE:
-			if self._newmod != Modifier.NONE:
-				self.work_modifier()
-			else:
-				if self._newstate != States.NONE:
-					self.work_state()
+			logging.debug(f' work {self.getName()}: {self._newstate}')
+
+			jmp = {
+				# states
+				States.OFF: self.TurnOff,
+				States.WATCHTV: self.WatchTV,
+				States.WATCHTVMOVIE: self.WatchTvMovie,
+				States.WATCHBRMOVIE: self.WatchBrMovie,
+				States.LISTENMUSICDLNA: self.ListenMusic,
+				States.LISTENRADIO: self.ListenRadio,
+				States.LISTENIRADIO: self.ListenIRadio,
+				States.CHROMECAST: self.WatchChromecast,
+				States.TV2DLNA: self.WatchDlnaOnTV,
+				States.WII: self.PlayWii,
+				# Modifiers
+				Modifier.MUTE: self.GlobalMute,
+				Modifier.UNMUTE: self.GlobalUnMute,
+				Modifier.TOGGLEMUTE: self.ToggleGlobalMute,
+				Modifier.USESPEAKER: self.UseSpeaker,
+			}
+			if self._newstate in jmp:
+				jmp[self._newstate]()
+
 			logging.debug(f' Done {self.getName()} after {self.getTime():.1f} secs')
 
 			self._available.set()
@@ -132,43 +137,6 @@ class Device(threading.Thread):
 			self._work.wait()
 			self._work.release()
 		logging.debug(f'thread {self.getName()} ended')
-
-	# runs as a thread
-	def work_modifier(self):
-		logging.debug(f' work_modifier {self.getName()} self._newmod {self._newmod}')
-		if self._newmod==Modifier.MUTE:
-			self.GlobalMute()
-		elif self._newmod==Modifier.UNMUTE:
-			self.GlobalUnMute()
-		elif self._newmod==Modifier.TOGGLEMUTE:
-			self.ToggleGlobalMute()
-		elif self._newmod==Modifier.USESPEAKER:
-			self.UseSpeaker()
-		self._self._newmod = Modifier.NONE
-
-	# runs as a thread
-	def work_state(self):
-		logging.debug(f' work_state {self.getName()} self._newstate {self._newstate}')
-		if self._newstate==States.OFF:
-			self.TurnOff()
-		elif self._newstate==States.WATCHTV:
-			self.WatchTV()
-		elif self._newstate==States.WATCHTVMOVIE:
-			self.WatchTvMovie()
-		elif self._newstate==States.WATCHBRMOVIE:
-			self.WatchBrMovie()
-		elif self._newstate==States.LISTENMUSICDLNA:
-			self.ListenMusic()
-		elif self._newstate==States.LISTENRADIO:
-			self.ListenRadio()
-		elif self._newstate==States.LISTENIRADIO:
-			self.ListenIRadio()
-		elif self._newstate==States.CHROMECAST:
-			self.WatchChromecast()
-		elif self._newstate==States.TV2DLNA:
-			self.WatchDlnaOnTV()
-		elif self._newstate==States.WII:
-			self.PlayWii()
 
 	def SetIrCommand(self, code):
 		pass
@@ -200,14 +168,14 @@ class Device(threading.Thread):
 	def WatchChromecast(self):
 		pass
 
-	def WatchDlnaOnTV(self):
-		pass
-
 	def UseSpeaker(self):
 		pass
 
 	def PlayWii(self):
 		pass
+
+	def WatchDlnaOnTV(self):
+			pass
 
 	def GlobalMute(self):
 		self._GlobalMute = True

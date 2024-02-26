@@ -23,51 +23,16 @@ import time
 import os
 import threading
 
-from Helpers import States,Modifier,timeout,watchclock
-
 class Dispatcher():
 	'Dispatch IR codes to device classes'
 	def __init__(self):
 		self.config = {}
 		self.lock = threading.Lock()
 		self.dispatch_dict = {}
-		self.mofifier_dict = {}
-		
-	# For now I keep the old two step translation table until I see how the states could be directly placed in the yaml
-	_States = {
-		'tv': ( States.WATCHTV, 0 ),
-		'movie' : ( States.WATCHTVMOVIE, 0 ),
-		'brmovie' : ( States.WATCHBRMOVIE, 0 ),
-		'dlna' : ( States.LISTENMUSICDLNA, 0 ),
-		'radio' : ( States.LISTENRADIO, 0 ),
-		'iradio' : ( States.LISTENIRADIO, 1 ),
-		'iradio1' : ( States.LISTENIRADIO, 1),
-		'iradio2' : ( States.LISTENIRADIO, 2,),
-		'iradio3' : ( States.LISTENIRADIO, 3,),
-		'iradio4' : ( States.LISTENIRADIO, 4,),
-		'iradio5' : ( States.LISTENIRADIO, 5,),
-		'iradio6' : ( States.LISTENIRADIO, 6,),
-		'iradio7' : ( States.LISTENIRADIO, 7,),
-		'iradio8' : ( States.LISTENIRADIO, 8),
-		'iradio9' : ( States.LISTENIRADIO, 9,),
-		'off' : ( States.OFF, 0 ),
-		'chromecast' : ( States.CHROMECAST, 0 ),
-		'blueray' : ( States.WATCHBRMOVIE, 0 ),
-		'tv2dlna' : ( States.TV2DLNA, 0 ),
-		'wii' : ( States.WII, 0 ),
-	}
-
-	_Modifier = {
-		'usespeaker' : ( Modifier.USESPEAKER, 0 ),
-		'mute' : ( Modifier.MUTE, 0 ),
-		'unmute' : ( Modifier.UNMUTE, 0 ),
-		'togglemute' : ( Modifier.TOGGLEMUTE, 0 ),
-	}
 
 ###########################################
 	def InitDispatch(self):
 		self.dispatch_dict = self.config.get('dispatch', None)
-		self.mofifier_dict = self.config.get('dispatch_modifier', None)
 		# print(cfg)
 
 ###########################################
@@ -84,51 +49,32 @@ class Dispatcher():
 	def Validate(self):
 		if self.dispatch_dict is None:
 			logging.error("There is no dispatch_dict defined")
-		if self.mofifier_dict is None:
-			logging.error("There is no mofifier_dict defined")
-
-###########################################
-	def Split(self, code:str):
-		if ' ' in code:
-			remote_key = code.split()
-		else:
-			remote_key = ['',code]
-		return remote_key
 
 ###########################################
 	#'15000f04c300 0 15000f04c300 IRMP'
-	def Translate(self, ir_code:str, xlate:dict):
-		code,repeat,key,remote = self.Split(ir_code)
-		cmd = xlate.get(f'{remote} {key}', None)
-		if cmd is None:
-			cmd = xlate.get(key, None)
-		return (cmd,int(repeat))
+	def TranslateIR(self, ir_code:str):
+		state=None
+		repeat='1'
+		parts = ir_code.split()
+		if len(parts)==4:
+			code,repeat,key,remote = parts
+			state = self.dispatch_dict.get(f'{remote} {key}', None)
+			if state is None:
+				state = self.dispatch_dict.get(f'{key}', None)
+			if state is None:
+				state = self.dispatch_dict.get(f'{remote} {code}', None)
+		return (state,int(repeat))
 
 ###########################################
 	def Dispatch(self, ir_code:str):
-		cmd,repeat = self.Translate(ir_code, self.dispatch_dict)
+		state,repeat = self.TranslateIR(ir_code)
 		if not repeat:
-			if cmd:
-				state = self._States.get(cmd, None)
-				if state is not None:
-					self.SetState(state)
+			if state:
+				self.SetState(state)
 			else:
-				self.DispatchModifier(ir_code)
-
-###########################################
-	def DispatchModifier(self, ir_code:str):
-		modifier,_ = self.Translate(ir_code, self.mofifier_dict)
-		if modifier is not None:
-			mod = self._Modifier.get(modifier, None)
-			if mod is not None:
-				self.SetModifier(mod)
-		else:
-			logging.info(f"Unknown ir code {ir_code}")
+				logging.info(f"Unknown ir code {ir_code}")
 
 ###########################################
 	def SetState(self, state):
 		pass
 
-###########################################
-	def SetModifier(self, modifier):
-		pass

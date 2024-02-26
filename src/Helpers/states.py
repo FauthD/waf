@@ -17,26 +17,46 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from enum import Enum
+from enum import Enum, EnumMeta
 
-class States(Enum):
-	NONE=-2
-	TERMINATE=-1
-	OFF=0
-	WATCHTV=1
-	LISTENMUSICDLNA=2
-	WATCHTVMOVIE=3
-	WATCHBRMOVIE=4
-	LISTENRADIO=5
-	LISTENIRADIO=6
-	CHROMECAST=7
-	TV2DLNA=8
-	WII=9
+# Idea found there:
+# https://stackoverflow.com/questions/61796731/contains-and-python3-8-enum-enum
+class MyMeta(EnumMeta):
+    def __contains__(self, other):
+        try:
+            self(other)
+        except ValueError:
+            return False
+        else:
+            return True
 
-class Modifier(Enum):
-	NONE=0
-	UNMUTE=1
-	MUTE=2
-	TOGGLEMUTE=3
-	USESPEAKER=4
+class States(str, Enum, metaclass=MyMeta):
+	NONE='none'
+	TERMINATE='terminate'
+	OFF='off'
+	WATCHTV='tv'
+	LISTENMUSICDLNA='dlna'
+	WATCHTVMOVIE='movie'
+	WATCHBRMOVIE='blueray'
+	LISTENRADIO='radio'
+	LISTENIRADIO='iradio'
+	LISTENIRADIO1='iradio1'
+	LISTENIRADIO2='iradio2'
+	LISTENIRADIO3='iradio3'
+	LISTENIRADIO4='iradio4'
+	LISTENIRADIO5='iradio5'
+	LISTENIRADIO6='iradio6'
+	LISTENIRADIO7='iradio7'
+	LISTENIRADIO8='iradio8'
+	LISTENIRADIO9='iradio9'
+	CHROMECAST='chromecast'
+	TV2DLNA='tv2dlna'
+	WII='wii'
+	# Add new states here
 
+class Modifier(str, Enum, metaclass=MyMeta):
+	UNMUTE='unmute'
+	MUTE='mute'
+	TOGGLEMUTE='togglemute'
+	USESPEAKER='usespeaker'
+	# Add new modifiers here
