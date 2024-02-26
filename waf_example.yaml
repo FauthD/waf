@@ -67,6 +67,7 @@ dispatch:
     WAF_MOVIE: movie
     DF_A: tv
     WAF_TV: tv
+    # Example for remote + key
     "OneForAll_URC7962_S1272 KEY_ZOOM": off
     "OneForAll_URC6440_S1672 KEY_ZOOM": off
     "OneForAll_URC7980_V0146 KEY_POWER": off
@@ -92,8 +93,12 @@ dispatch:
     WAF_INETRADIO7: iradio7
     WAF_INETRADIO8: iradio8
     WAF_INETRADIO9: iradio9
+    # you can also use untranslated Ir-Codes
+    'IRMP 15000f04c300': tv
+    'IRMP 15000f04e300': movie
+    'IRMP 15000f048300': dlna
 
-dispatch_modifier:
+    # Modifiers:
     WAF_TOGGLEMUTE: togglemute
     WAF_MUTE: mute
     WAF_UNMUTE: unmute
