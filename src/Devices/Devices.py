@@ -31,6 +31,9 @@ from .LG_Netcast import LG_Netcast
 from .Onkyo import Onkyo
 from .PanasonicBR import PanasonicBR
 
+from Helpers import timeout,watchclock,WafException
+from StatusLeds import StatusLedsManager
+
 class DevicesManager(Dispatcher):
 	'Manager for Devices'
 	def __init__(self):
@@ -39,6 +42,9 @@ class DevicesManager(Dispatcher):
 		self._devices = []
 		self.RX_Fifo = queue.Queue()
 		self.TX_Fifo = queue.Queue()
+		self._time = watchclock.Watchclock()
+		self._status_leds = StatusLedsManager()
+		self._mute = threading.Event()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -59,6 +65,8 @@ class DevicesManager(Dispatcher):
 ###########################################
 	def Init(self, config:dict):
 		super().Init(config)
+		self._status_leds.Init(self.config)
+
 		devices = config.get('devices', None)
 		# print(type(devices), devices)
 		if isinstance(devices, dict):
@@ -76,6 +84,8 @@ class DevicesManager(Dispatcher):
 ###########################################
 	def Validate(self):
 		super().Validate()
+		self._status_leds.Validate()
+
 		if self._devices is None or len(self._devices) == 0:
 			raise WafException("DevicesManager: There is no device defined")
 		for device in self._devices:
@@ -91,6 +101,9 @@ class DevicesManager(Dispatcher):
 				if device is not None:
 					device.SetState(state)
 
+	def getTime(self):
+		return self._time.getTime()
+
 	def NumBusy(self):
 		Busy = 0
 		for device in self._devices:
@@ -102,3 +115,27 @@ class DevicesManager(Dispatcher):
 			if device.isBusy():
 				logging.debug(f'Still busy: {device.getName()}, breaking it')
 				device.ResetBusy()
+
+	def WaitFinish(self):
+		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
+		to = timeout.Timeout(70)
+		Busy = self.NumBusy()
+		while Busy > 0:
+			self._status_leds.Toggle()
+			time.sleep(Busy/4)
+			Busy = self.NumBusy()
+			if to.isExpired():
+				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
+				self.ShowBusy()
+				break
+
+	def Clean(self):
+		logging.debug(f'Clean after {self.getTime():.1f} secs')
+		self._status_leds.Off()
+
+	def Dispatch(self, ir_code:str):
+		self._time.Reset()
+		self._mute.clear()
+		super().Dispatch(ir_code)
+		self.WaitFinish()
+		self.Clean()
