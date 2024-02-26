@@ -33,6 +33,10 @@ class irmp(Remote):
 		self.device = cfg.get('device', '/dev/irmp_stm32')
 		self._irmp = IrmpConnector(self.device, self.RX_Fifo, self.rx_enable)
 
+	def Init(self):
+		super().Init()
+		self._irmp.ReadConfig()
+
 ###########################################
 	def Send(self, code):
 		if not self.tx_enable:
@@ -45,7 +49,7 @@ class irmp(Remote):
 			data += [code[i:i+2] for i in range(0, len(code), 2)]
 			self._irmp.SendIrReport(data)
 		except:
-			print(f"Unknown code: '{remote} {key}'")
+			logging.info(f"Send unknown code: '{remote} {key}'")
 
 
 ##############################################

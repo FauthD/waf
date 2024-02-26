@@ -23,6 +23,7 @@ import os
 import time
 import errno
 import selectors
+import logging
 from dataclasses import dataclass
 
 VID=0x1209
@@ -88,7 +89,7 @@ class IrmpHidRaw():
 		try:
 			os.write(self._hidraw_fd, data)
 		except IOError as ex:
-			print(f"Error writing to HIDRAW device: {ex}")
+			logging.info(f"Error writing to HIDRAW device: {ex}")
 
 	###############################################
 	def close(self):
@@ -97,29 +98,28 @@ class IrmpHidRaw():
 				os.close(self._hidraw_fd)
 			self._hidraw_fd = None
 		except IOError as ex:
-			print(f"Error closing HIDRAW device: {ex}")
+			logging.info(f"Error closing HIDRAW device: {ex}")
 
 	###############################################
 	def ReadMap(self, mapfile:str, remote:str):
 		self._remotes.append(remote)
-		if (os.path.exists(mapfile)):
-			with open(mapfile) as f:
-				lines = f.readlines()
-				for line in lines:
-					parts =line.split()
-					if (parts is not None and len(parts) >= 2):
-						if (parts[0].startswith('#')):
-							continue
-						if (parts[1].startswith('#')):
-							continue
-						name = f"{remote} {parts[1]}"
-						if parts[0] in self._keymap:
-							print(f"Multiple definitions of: {parts[0]} - {name}")
-						if name in self._codemap:
-							print(f"Multiple definitions of: {name}, problems ahead")
-						self._keymap[parts[0]] = name
-						self._codemap[name] = parts[0]# reverse translation for irsend
-		#print (self.keymap)
+		with open(mapfile) as f:
+			lines = f.readlines()
+			for line in lines:
+				parts =line.split()
+				if (parts is not None and len(parts) >= 2):
+					if (parts[0].startswith('#')):
+						continue
+					if (parts[1].startswith('#')):
+						continue
+					name = f"{remote} {parts[1]}"
+					if parts[0] in self._keymap:
+						logging.info(f"Multiple definitions of: {parts[0]} - {name}")
+					if name in self._codemap:
+						logging.info(f"Multiple definitions of: {name}, problems ahead")
+					self._keymap[parts[0]] = name
+					self._codemap[name] = parts[0]# reverse translation for irsend
+		#logging.info (self.keymap)
 
 	###############################################
 	def ReadMapDir(self, mapdir:str):
@@ -130,13 +130,19 @@ class IrmpHidRaw():
 
 	###############################################
 	def ReadConfig(self):
+		self.ReadMap(self._mapfile, "IRMP")
+		self.ReadMapDir(self._mapdir)
+		# logging.info (self._keymap)
+		# logging.info (self._codemap)
+
+	###############################################
+	def _ReadConfig(self):
 		try:
-			self.ReadMap(self._mapfile, "IRMP")
-			self.ReadMapDir(self._mapdir)
+			self.ReadConfig()
 		except IOError as ex:
-			print(ex)
-		# print (self._keymap)
-		# print (self._codemap)
+			logging.info(ex)
+		# logging.info (self._keymap)
+		# logging.info (self._codemap)
 
 	###############################################
 	def GetKey(self, code):
@@ -178,7 +184,7 @@ class IrmpHidRaw():
 			self.IrReceiveHandler(Protcol, Addr, Command, Flag)
 
 		elif (received[0] != REPORT_ID_CONFIG_IN):
-			print (received)
+			logging.info (received)
 
 	###############################################
 	def IrReceiveHandler(self, Protcol, Addr, Command, Flag):
@@ -186,7 +192,7 @@ class IrmpHidRaw():
 
 	###############################################
 	def ReadIr(self):
-		print("Read the data in endless loop")
+		logging.info("Read the data in endless loop")
 		selector = selectors.DefaultSelector()
 		selector.register(self._hidraw_fd, selectors.EVENT_READ)
 		

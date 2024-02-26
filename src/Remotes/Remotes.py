@@ -66,6 +66,10 @@ class RemotesManager():
 				self._remotes.append(self.InstantiateClass(remote))
 		else:
 			logging.info("remotes must exist and be a dict (ensure to add a space after the :)")
+		
+		for remote in self._remotes:
+			if remote is not None:
+				remote.Init()
 
 	def Validate(self):
 		if self._remotes is None or len(self._remotes) == 0:
@@ -80,7 +84,8 @@ class RemotesManager():
 ###########################################
 	def Send(self, code):
 		for remote in self._remotes:
-			remote.Send(code)
+			if remote is not None:
+				remote.Send(code)
 
 ###########################################
 	# This is a blocking call

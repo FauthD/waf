@@ -30,6 +30,9 @@ class Remote():
 		self.tx_enable = cfg.get('tx', True)
 		self.rx_enable = cfg.get('rx', True)
 
+	def Init(self):
+		pass
+
 	def Validate(self):
 		if self.config is None or len(self.config) == 0:
 			raise WafException("Remote: There is no config defined")

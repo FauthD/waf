@@ -37,7 +37,7 @@ class lirc(Remote):
 		self.transmitter = LircTransmitter(self.socket_path)
 
 	def Send(self, code):
-		if not self.tx:
+		if not self.tx_enable:
 			return
 		self.transmitter.Send(code)
 
