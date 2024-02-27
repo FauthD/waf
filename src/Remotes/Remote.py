@@ -24,11 +24,12 @@ import queue
 from Helpers import WafException
 
 class Remote():
-	def __init__(self, cfg:dict, RX_Fifo:queue):
+	def __init__(self, cfg:dict, RX_Fifo:queue, stopper):
 		self.config = cfg
 		self.RX_Fifo = RX_Fifo
 		self.tx_enable = cfg.get('tx', True)
 		self.rx_enable = cfg.get('rx', True)
+		self._stopper = stopper
 
 	def Init(self):
 		pass

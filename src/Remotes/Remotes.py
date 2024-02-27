@@ -22,6 +22,7 @@ import time
 import logging
 import threading
 import queue
+
 from Helpers import WafException
 from .lirc import lirc
 from .irmp import irmp
@@ -29,12 +30,13 @@ from .DummyRemote import DummyRemote
 
 class RemotesManager():
 	'Manager for Remotes'
-	def __init__(self):
+	def __init__(self, stopper):
 		super().__init__()
 		# self.config = None
 		self._remotes = []
 		self.RX_Fifo = queue.Queue()
 		self.TX_Fifo = queue.Queue()
+		self._stopper = stopper
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -42,7 +44,7 @@ class RemotesManager():
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self.RX_Fifo)
+				ret = instance(cfg, self.RX_Fifo, self._stopper)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None

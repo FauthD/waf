@@ -28,13 +28,14 @@ from Helpers import States,Modifier,Timeout,Watchclock
 
 class Device(threading.Thread):
 	'Base class for devices'
-	def __init__(self, dev_config:dict, count, maxtime=60):
+	def __init__(self, dev_config:dict, count, stopper, maxtime=60):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
 		self._timeout = Timeout(maxtime)
 		self._busy_count = count
+		self._stopper = stopper
 		self._start_time = Watchclock()
 		self._oldstate = States.NONE
 		self._newstate = States.NONE
@@ -42,13 +43,19 @@ class Device(threading.Thread):
 		self._available = threading.Event()
 		self._On = False
 		self._GlobalMute = False
-		self.setDaemon(True)
+		# self.setDaemon(True)
 		self.start()
 
 ###########################################
 	def Validate(self):
 		pass
 	
+	def stop(self):
+		self._newstate = States.NONE
+		with self._work:
+			self._work.notify()
+		self.join()
+
 	def isBusy(self):
 		return not self._available.is_set()
 
@@ -70,7 +77,7 @@ class Device(threading.Thread):
 		self._timeout.Reset()
 		exitstatus = 1
 		count = 0
-		while (exitstatus != 0) and not self._timeout.isExpired():
+		while (exitstatus != 0) and not self._timeout.isExpired() and self._stopper.run:
 			time.sleep(0.5)
 			#run_time = watchclock.Watchclock()
 			(command_output, exitstatus) = pexpect.run(f'ping -i 0.3 -c1 {self._devicename}', withexitstatus=True)
@@ -108,8 +115,7 @@ class Device(threading.Thread):
 	# runs as a thread
 	def run(self):
 		self._available.set()
-		while self._newstate!=States.TERMINATE:
-			logging.debug(f' work {self.getName()}: {self._newstate}')
+		while self._stopper.run:
 
 			jmp = {
 				# states
@@ -130,10 +136,10 @@ class Device(threading.Thread):
 				Modifier.USESPEAKER: self.UseSpeaker,
 			}
 			if self._newstate in jmp:
+				logging.debug(f' work {self.getName()}: {self._newstate}')
 				jmp[self._newstate]()
-
-			logging.debug(f' Done {self.getName()} after {self.getTime():.1f} secs')
-			self._busy_count.Decrement()
+				logging.debug(f' Done {self.getName()} after {self.getTime():.1f} secs')
+				self._busy_count.Decrement()
 
 			self._available.set()
 			with self._work:

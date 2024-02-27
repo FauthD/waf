@@ -23,6 +23,7 @@ import time
 import os
 import socket
 import queue
+
 from enum import Enum
 
 from Helpers import WafException
@@ -30,11 +31,11 @@ from . Remote import Remote
 
 class lirc(Remote):
 	'Send/receive IR codes with lirc'
-	def __init__(self, cfg:dict, RX_Fifo:queue):
-		super().__init__(cfg, RX_Fifo)
+	def __init__(self, cfg:dict, RX_Fifo:queue, stopper):
+		super().__init__(cfg, RX_Fifo, stopper)
 		self.socket_path = cfg.get('socket', '/run/lirc/lircd')
-		self.receiver = LircReceiver(self.socket_path, self.RX_Fifo, self.rx_enable)
-		self.transmitter = LircTransmitter(self.socket_path)
+		self.receiver = LircReceiver(self.socket_path, self.RX_Fifo, self.rx_enable, stopper)
+		self.transmitter = LircTransmitter(self.socket_path, stopper)
 
 	def Send(self, code):
 		if not self.tx_enable:
@@ -44,11 +45,12 @@ class lirc(Remote):
 SOCKET_BUFER=256
 ##############################################
 class LircReceiver(threading.Thread):
-	def __init__(self, socket_path, RX_Fifo, rx_enable):
+	def __init__(self, socket_path, RX_Fifo, rx_enable, stopper):
 		super().__init__(name='LircReceiver')
 		self.RX_Fifo = RX_Fifo
 		self.rx_enable = rx_enable
 		self.socket_path = socket_path
+		self._stopper = stopper
 		self.client_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 		self.connected = False
 		self._stop = threading.Event()
@@ -68,7 +70,7 @@ class LircReceiver(threading.Thread):
 	# runs as a thread
 	def run(self):
 		self.SocketConnect()
-		while not self._stop.is_set():
+		while not self._stop.is_set() and self._stopper.run:
 			data = self.client_socket.recv(SOCKET_BUFER)
 			if data is None or len(data) == 0:
 				break
@@ -77,9 +79,11 @@ class LircReceiver(threading.Thread):
 			message =text.split(sep='\n')
 			if self.rx_enable:
 				self.RX_Fifo.put(message[0])
+		# allow the other side of the fifo to exit
+		self.RX_Fifo.put(None)
 
 	def SocketConnect(self):
-		while not self.connected and not self._stop.is_set():
+		while not self.connected and not self._stop.is_set() and self._stopper.run:
 			if os.path.exists(self.socket_path):
 				try:
 					# connect to LIRC-UNIX-Socket
@@ -97,8 +101,8 @@ class LircReceiver(threading.Thread):
 
 ##############################################
 class LircTransmitter(LircReceiver):
-	def __init__(self, socket_path):
-		super().__init__(socket_path, None, False)
+	def __init__(self, socket_path, stopper):
+		super().__init__(socket_path, None, False, stopper)
 		self._parser = ReplyParser()
 
 	# runs as a thread
@@ -116,7 +120,7 @@ class LircTransmitter(LircReceiver):
 		except Exception as e:
 			logging.error(f"Error sending data to client: {e}")
 
-		while not self._parser.is_completed():
+		while not self._parser.is_completed() and not self._stop.is_set() and self._stopper.run:
 			line = self._conn.readline(1)
 			if not line:
 				raise TimeoutException('No data from lircd host.')

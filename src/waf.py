@@ -39,9 +39,9 @@ class Waf():
 	def __init__(self):
 		self.InitLogging()
 		self.config = None
-		self._devices = DevicesManager()
-		self._remotes = RemotesManager()
-		self.stopper = systemd_stopper.install()
+		self._stopper = systemd_stopper.install()
+		self._devices = DevicesManager(self._stopper)
+		self._remotes = RemotesManager(self._stopper)
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
@@ -96,21 +96,23 @@ class Waf():
 
 ###########################################
 	def Work(self):
-		timeout = 0.5
+		timeout = 0.2
 		try:
 			if self.Init():
-				while self.stopper.run:
+				while self._stopper.run:
 					try:
 						code = self._remotes.GetRemoteCode(timeout)
 					except queue.Empty as empty:
 						continue
 					else:
-						self._devices.Dispatch(code)
+						if code is not None:
+							self._devices.Dispatch(code)
 		except IOError as ex:
 			print(f'{ex}')
 		except Exception as ex:
 			print(f'{ex}')
 		finally:
+			self._devices.stop()
 			logging.debug('=== Stop ===')
 
 

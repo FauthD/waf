@@ -22,6 +22,7 @@ import time
 import logging
 import threading
 import queue
+
 from Helpers import WafException,Counter
 
 from .Dispatcher import Dispatcher
@@ -38,7 +39,7 @@ from StatusLeds import StatusLedsManager
 
 class DevicesManager(Dispatcher):
 	'Manager for Devices'
-	def __init__(self):
+	def __init__(self, stopper):
 		super().__init__()
 		self.config = {}
 		self._devices = []
@@ -48,6 +49,7 @@ class DevicesManager(Dispatcher):
 		self._status_leds = StatusLedsManager()
 		self._mute = threading.Event()
 		self._busy_count = Counter()
+		self._stopper = stopper
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -55,7 +57,7 @@ class DevicesManager(Dispatcher):
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self._busy_count)
+				ret = instance(cfg, self._busy_count, self._stopper)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -95,7 +97,7 @@ class DevicesManager(Dispatcher):
 			if device is not None:
 				device.Validate()
 			else:
-				raise WafException("DevicesManager: A remote control is None")
+				raise WafException("DevicesManager: A device is None")
 
 ###########################################
 	def SetState(self, state):
@@ -104,6 +106,12 @@ class DevicesManager(Dispatcher):
 			for device in self._devices:
 				if device is not None:
 					device.SetState(state)
+
+	def stop(self):
+		with self.lock:
+			for device in self._devices:
+				if device is not None:
+					device.stop()
 
 	def getTime(self):
 		return self._time.getTime()
@@ -117,11 +125,11 @@ class DevicesManager(Dispatcher):
 	def WaitFinish(self):
 		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
 		to = timeout.Timeout(70)
-		Busy = self._counter.Get()
+		Busy = self._busy_count.Get()
 		while Busy > 0:
 			self._status_leds.Toggle()
-			time.sleep(Busy/4)
-			Busy = self._counter.Get()
+			time.sleep(Busy/8)
+			Busy = self._busy_count.Get()
 			if to.isExpired():
 				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
 				self.ShowBusy()
