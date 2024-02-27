@@ -26,8 +26,12 @@ class StatusLed():
 			self.status_led = status_led
 		else:
 			print("status_led must be a dict (ensure to add a space after the :)")
+		self.delay = self.status_led.get('delay', 0.05)
 		self._Status = 0
 
-	def ShowStatus(self, num_busy, delay):
+	def GetDelay(self):
+		return self.delay
+
+	def ShowStatus(self, num_busy):
 		self.Toggle()
 		time.sleep(num_busy/8)

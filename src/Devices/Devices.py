@@ -125,12 +125,11 @@ class DevicesManager(Dispatcher):
 
 	def WaitFinish(self):
 		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
-		delay = 0.05
 		to = timeout.Timeout(70)
 		NumBusy = self._busy_count.Get()
 		while NumBusy > 0:
-			self._status_leds.ShowStatus(NumBusy, delay)
-			time.sleep(delay)
+			self._status_leds.ShowStatus(NumBusy)
+			time.sleep(self._status_leds.GetDelay())
 			NumBusy = self._busy_count.Get()
 			if to.isExpired():
 				self.ShowBusy()

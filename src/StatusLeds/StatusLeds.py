@@ -62,6 +62,9 @@ class StatusLedsManager(object):
 		if self.status_led is None:
 			raise WafException("StatusLedsManager: There is no status led defined")
 
+	def GetDelay(self):
+		return self.status_led.GetDelay()
+
 	def Off(self):
 		self.status_led.Off()
 
@@ -71,5 +74,5 @@ class StatusLedsManager(object):
 	def Toggle(self):
 		self.status_led.Toggle()
 
-	def ShowStatus(self, num_busy, delay):
-		self.status_led.ShowStatus(num_busy, delay)
+	def ShowStatus(self, num_busy):
+		self.status_led.ShowStatus(num_busy)

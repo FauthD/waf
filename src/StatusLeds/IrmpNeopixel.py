@@ -100,7 +100,7 @@ class IrmpNeopixel(StatusLed):
 
 	def BlendColor(self, color):
 		blend_color = [0,0,0]
-		for i in range(3):
+		for i in range(len(color)):
 			blend_color[i] = int((color[i]+self.last_color[i]*3)/4)
 		return blend_color
 
@@ -118,15 +118,14 @@ class IrmpNeopixel(StatusLed):
 		self._Status ^= True
 		self.irmp.Set(self._Status)
 
-	def ShowStatus(self, num_busy, delay):
+	def ShowStatus(self, num_busy):
 		color = self.colors.get(num_busy, (50,35,20))
 		if self.last_num != num_busy:
 			self.last_num = num_busy
 			for i in range(7):
 				_color = self.BlendColor(color)
-				#print(_color)
 				self.last_color = _color
 				self.irmp.Next(_color)
-				time.sleep(delay)
+				time.sleep(self.GetDelay())
 		self.last_color = color
 		self.irmp.Next(color)
