@@ -89,7 +89,7 @@ class IrmpHidRaw():
 		try:
 			os.write(self._hidraw_fd, data)
 		except IOError as ex:
-			logging.info(f"Error writing to HIDRAW device: {ex}")
+			logging.error(f"Error writing to HIDRAW device: {ex}")
 
 	###############################################
 	def close(self):
@@ -98,7 +98,7 @@ class IrmpHidRaw():
 				os.close(self._hidraw_fd)
 			self._hidraw_fd = None
 		except IOError as ex:
-			logging.info(f"Error closing HIDRAW device: {ex}")
+			logging.error(f"Error closing HIDRAW device: {ex}")
 
 	###############################################
 	def ReadMap(self, mapfile:str, remote:str):
@@ -184,7 +184,7 @@ class IrmpHidRaw():
 			self.IrReceiveHandler(Protcol, Addr, Command, Flag)
 
 		elif (received[0] != REPORT_ID_CONFIG_IN):
-			logging.info (received)
+			logging.debug (received)
 
 	###############################################
 	def IrReceiveHandler(self, Protcol, Addr, Command, Flag):
@@ -192,7 +192,7 @@ class IrmpHidRaw():
 
 	###############################################
 	def ReadIr(self):
-		logging.info("Read the data in endless loop")
+		logging.debug("Read the data in endless loop")
 		selector = selectors.DefaultSelector()
 		selector.register(self._hidraw_fd, selectors.EVENT_READ)
 		
