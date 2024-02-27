@@ -20,11 +20,12 @@
 import Irmp
 from . StatusLed import StatusLed
 
-NUM_PIXEL=8
+NUM_PIXEL=Irmp.NUM_PIXEL
 
 class Irmp(Irmp.IrmpHidRaw):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, device):
+		super().__init__(device_path=device)
+		self.index=0
 		self.open()
 	
 	def __del__(self):
@@ -44,15 +45,56 @@ class Irmp(Irmp.IrmpHidRaw):
 			print(ex)
 			print("You probably don't have the IRMP device.")
 
+	def NextIndex(self):
+		list = [0,1,2,3,4,5,6,7, 6,5,4,3,2,1]
+		self.index += 1
+		if self.index >= 2*NUM_PIXEL-2:
+			self.index = 0
+		return list[self.index]
+
+	def Next(self, color):
+		n = self.NextIndex()
+		# print(n, color)
+		r, g, b = color
+		self.setPixelColor(n, r,g,b)
+		self.setDarkPixelColor(n+1, r,g,b)
+		self.setDarkPixelColor(n-1, r,g,b)
+		self.SendNeopixelReport()
+		self.setPixelColor(n, 0,0,0)
+		self.setPixelColor(n-1, 0,0,0)
+		self.setPixelColor(n+1, 0,0,0)
+
+#####################################################################
+DefaultColors = { 1: '100,20,25' }
 #####################################################################
 class IrmpNeopixel(StatusLed):
 	'IrmpNeopixel status led handler'
 	def __init__(self, status_led:dict):
 		super().__init__(status_led)
-		self.irmp = Irmp()
+		self.colors = {}
+		self.device = self.status_led.get('device', '/dev/irmp_stm32')
+		self.irmp = Irmp(self.device)
+		self.TranslateDict(self.status_led.get('colors', DefaultColors))
 
 	def __del__(self):
 		self.irmp.Set(0)
+
+	def String2Integers(self, string):
+		try:
+			if string is None:
+				raise ValueError('RGB string is None.')
+			integers = [int(num.strip(), 0) for num in string.split(',')]
+			if len(integers) != 3:
+				raise ValueError('RGB must have exact 3 numbers "{string}".')
+			return integers
+		except ValueError as e:
+			print("Could not parse int:", e)
+		return []
+
+	def TranslateDict(self, input:dict):
+		for key,value in input.items():
+			rgb = self.String2Integers(value)
+			self.colors[key] = rgb
 
 	def Off(self):
 		self._Status = False
@@ -66,3 +108,5 @@ class IrmpNeopixel(StatusLed):
 		self._Status ^= True
 		self.irmp.Set(self._Status)
 
+	def ShowStatus(self, num_busy):
+		self.irmp.Next(self.colors.get(num_busy, (50,50,50)))

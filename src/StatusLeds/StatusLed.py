@@ -17,6 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import time
+
 class StatusLed():
 	def __init__(self, status_led:dict):
 		# print(type(status_led), status_led)
@@ -25,3 +27,7 @@ class StatusLed():
 		else:
 			print("status_led must be a dict (ensure to add a space after the :)")
 		self._Status = 0
+
+	def ShowStatus(self, num_busy):
+		self.Toggle()
+		time.sleep(num_busy/8)

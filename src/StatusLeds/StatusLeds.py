@@ -70,3 +70,6 @@ class StatusLedsManager(object):
 
 	def Toggle(self):
 		self.status_led.Toggle()
+
+	def ShowStatus(self, num_busy):
+		self.status_led.ShowStatus(num_busy)
