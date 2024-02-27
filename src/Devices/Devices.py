@@ -117,21 +117,22 @@ class DevicesManager(Dispatcher):
 		return self._time.getTime()
 
 	def ShowBusy(self):
+		logging.error('WaitFinish aborted {self.getTime():.1f} secs')
 		for device in self._devices:
 			if device.isBusy():
-				logging.debug(f'Still busy: {device.getName()}, breaking it')
+				logging.error(f'Still busy: {device.getName()}, breaking it')
 				device.ResetBusy()
 
 	def WaitFinish(self):
 		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
+		delay = 0.05
 		to = timeout.Timeout(70)
-		Busy = self._busy_count.Get()
-		while Busy > 0:
-			self._status_leds.Toggle()
-			time.sleep(Busy/8)
-			Busy = self._busy_count.Get()
+		NumBusy = self._busy_count.Get()
+		while NumBusy > 0:
+			self._status_leds.ShowStatus(NumBusy, delay)
+			time.sleep(delay)
+			NumBusy = self._busy_count.Get()
 			if to.isExpired():
-				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
 				self.ShowBusy()
 				break
 
@@ -143,6 +144,5 @@ class DevicesManager(Dispatcher):
 		self._time.Reset()
 		self._mute.clear()
 		if super().Dispatch_(ir_code):
-			#time.sleep(1)
 			self.WaitFinish()
 			self.Clean()

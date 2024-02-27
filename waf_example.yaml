@@ -130,3 +130,9 @@ status_led:
   # class: IrmpLed
   class: IrmpNeopixel
   device: /dev/irmp_stm32
+  colors:
+    1: 30, 20, 90
+    2: 0,30,40
+    3: 60,80,0
+    4: 100,40,0
+    5: 0x80,0,0

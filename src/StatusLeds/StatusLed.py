@@ -28,6 +28,6 @@ class StatusLed():
 			print("status_led must be a dict (ensure to add a space after the :)")
 		self._Status = 0
 
-	def ShowStatus(self, num_busy):
+	def ShowStatus(self, num_busy, delay):
 		self.Toggle()
 		time.sleep(num_busy/8)

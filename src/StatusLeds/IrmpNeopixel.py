@@ -17,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import time
 import Irmp
 from . StatusLed import StatusLed
 
@@ -46,15 +47,14 @@ class Irmp(Irmp.IrmpHidRaw):
 			print("You probably don't have the IRMP device.")
 
 	def NextIndex(self):
-		list = [0,1,2,3,4,5,6,7, 6,5,4,3,2,1]
+		list = [1,2,3,4,5,6, 5,4,3,2]
 		self.index += 1
-		if self.index >= 2*NUM_PIXEL-2:
+		if self.index >= len(list):
 			self.index = 0
 		return list[self.index]
 
 	def Next(self, color):
 		n = self.NextIndex()
-		# print(n, color)
 		r, g, b = color
 		self.setPixelColor(n, r,g,b)
 		self.setDarkPixelColor(n+1, r,g,b)
@@ -75,6 +75,8 @@ class IrmpNeopixel(StatusLed):
 		self.device = self.status_led.get('device', '/dev/irmp_stm32')
 		self.irmp = Irmp(self.device)
 		self.TranslateDict(self.status_led.get('colors', DefaultColors))
+		self.last_color = 0,0,0
+		self.last_num = 0
 
 	def __del__(self):
 		self.irmp.Set(0)
@@ -96,8 +98,16 @@ class IrmpNeopixel(StatusLed):
 			rgb = self.String2Integers(value)
 			self.colors[key] = rgb
 
+	def BlendColor(self, color):
+		blend_color = [0,0,0]
+		for i in range(3):
+			blend_color[i] = int((color[i]+self.last_color[i]*3)/4)
+		return blend_color
+
 	def Off(self):
 		self._Status = False
+		self.last_color = 0,0,0
+		self.last_num = 0
 		self.irmp.Set(self._Status)
 
 	def On(self):
@@ -108,5 +118,15 @@ class IrmpNeopixel(StatusLed):
 		self._Status ^= True
 		self.irmp.Set(self._Status)
 
-	def ShowStatus(self, num_busy):
-		self.irmp.Next(self.colors.get(num_busy, (50,50,50)))
+	def ShowStatus(self, num_busy, delay):
+		color = self.colors.get(num_busy, (50,35,20))
+		if self.last_num != num_busy:
+			self.last_num = num_busy
+			for i in range(7):
+				_color = self.BlendColor(color)
+				#print(_color)
+				self.last_color = _color
+				self.irmp.Next(_color)
+				time.sleep(delay)
+		self.last_color = color
+		self.irmp.Next(color)

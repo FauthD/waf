@@ -255,7 +255,7 @@ class IrmpHidRaw():
 
 	###############################################
 	def setDarkPixelColor(self, index: int, r: int, g: int, b: int):
-		self.setPixelColor(index, int(r/8),int(g/8),int(b/8))
+		self.setPixelColor(index, int(r/16),int(g/16),int(b/16))
 
 	###############################################
 	def InitPixels(self):
