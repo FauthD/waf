@@ -28,12 +28,13 @@ from Helpers import States,Modifier,Timeout,Watchclock
 
 class Device(threading.Thread):
 	'Base class for devices'
-	def __init__(self, dev_config:dict, maxtime=60):
+	def __init__(self, dev_config:dict, count, maxtime=60):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
 		self._timeout = Timeout(maxtime)
+		self._busy_count = count
 		self._start_time = Watchclock()
 		self._oldstate = States.NONE
 		self._newstate = States.NONE
@@ -94,18 +95,19 @@ class Device(threading.Thread):
 		self._start_time.Reset()
 		logging.debug(f'SetState {self.getName()}: {state}')
 		self._available.wait()
-		self._work.acquire()
+		self._available.clear()
 		# do not update oldstate for modifiere keys (e.g. mute)
 		if state in States:
 			self._oldstate = self._newstate
 		self._newstate = state
-		self._work.notify()
-		self._work.release()
+		with self._work:
+			self._work.notify()
 		if not self.is_alive():
 			logging.debug(f'SetState {self.getName()} failed! Thread is dead.')
 
 	# runs as a thread
 	def run(self):
+		self._available.set()
 		while self._newstate!=States.TERMINATE:
 			logging.debug(f' work {self.getName()}: {self._newstate}')
 
@@ -131,11 +133,12 @@ class Device(threading.Thread):
 				jmp[self._newstate]()
 
 			logging.debug(f' Done {self.getName()} after {self.getTime():.1f} secs')
+			self._busy_count.Decrement()
 
 			self._available.set()
-			self._work.acquire()
-			self._work.wait()
-			self._work.release()
+			with self._work:
+				self._work.wait()
+
 		logging.debug(f'thread {self.getName()} ended')
 
 	def SetIrCommand(self, code):
@@ -148,6 +151,7 @@ class Device(threading.Thread):
 		logging.debug(f' {self.getName()} Off')
 
 	def WatchTV(self):
+		time.sleep(50)
 		pass
 
 	def WatchTvMovie(self):
@@ -175,7 +179,7 @@ class Device(threading.Thread):
 		pass
 
 	def WatchDlnaOnTV(self):
-			pass
+		pass
 
 	def GlobalMute(self):
 		self._GlobalMute = True
@@ -185,5 +189,4 @@ class Device(threading.Thread):
 
 	def ToggleGlobalMute(self):
 		self._GlobalMute ^= True
-
 

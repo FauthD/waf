@@ -22,8 +22,10 @@ import time
 import logging
 import threading
 import queue
-from Helpers import WafException
+from Helpers import WafException,Counter
+
 from .Dispatcher import Dispatcher
+
 from .Vdr import Vdr
 from .VdrOnboard import VdrOnboard
 from .Nas import Nas
@@ -45,6 +47,7 @@ class DevicesManager(Dispatcher):
 		self._time = watchclock.Watchclock()
 		self._status_leds = StatusLedsManager()
 		self._mute = threading.Event()
+		self._busy_count = Counter()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -52,7 +55,7 @@ class DevicesManager(Dispatcher):
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg)
+				ret = instance(cfg, self._busy_count)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -96,6 +99,7 @@ class DevicesManager(Dispatcher):
 
 ###########################################
 	def SetState(self, state):
+		self._busy_count.Set(len(self._devices))
 		with self.lock:
 			for device in self._devices:
 				if device is not None:
@@ -103,12 +107,6 @@ class DevicesManager(Dispatcher):
 
 	def getTime(self):
 		return self._time.getTime()
-
-	def NumBusy(self):
-		Busy = 0
-		for device in self._devices:
-			Busy += device.isBusy()
-		return Busy
 
 	def ShowBusy(self):
 		for device in self._devices:
@@ -119,11 +117,11 @@ class DevicesManager(Dispatcher):
 	def WaitFinish(self):
 		logging.debug(f' WaitFinish started after {self.getTime():.1f} secs')
 		to = timeout.Timeout(70)
-		Busy = self.NumBusy()
+		Busy = self._counter.Get()
 		while Busy > 0:
 			self._status_leds.Toggle()
 			time.sleep(Busy/4)
-			Busy = self.NumBusy()
+			Busy = self._counter.Get()
 			if to.isExpired():
 				logging.debug('WaitFinish aborted {self.getTime():.1f} secs')
 				self.ShowBusy()
@@ -136,6 +134,7 @@ class DevicesManager(Dispatcher):
 	def Dispatch(self, ir_code:str):
 		self._time.Reset()
 		self._mute.clear()
-		super().Dispatch(ir_code)
-		self.WaitFinish()
-		self.Clean()
+		if super().Dispatch_(ir_code):
+			#time.sleep(1)
+			self.WaitFinish()
+			self.Clean()

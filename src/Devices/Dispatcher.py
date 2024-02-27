@@ -66,15 +66,17 @@ class Dispatcher():
 		return (state,int(repeat))
 
 ###########################################
-	def Dispatch(self, ir_code:str):
+	def Dispatch_(self, ir_code:str):
+		ret = False
 		state,repeat = self.TranslateIR(ir_code)
 		if not repeat:
 			if state:
 				logging.debug(f'=== code={state} ===')
 				self.SetState(state)
+				ret = True
 			else:
 				logging.info(f"Unknown ir code {ir_code}")
-
+		return ret
 ###########################################
 	def SetState(self, state):
 		pass
