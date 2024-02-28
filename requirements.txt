@@ -2,3 +2,4 @@ pyyaml
 pexpect
 gpiod
 systemd_stopper
+onkyo-eiscp
