@@ -30,6 +30,7 @@ class Device(threading.Thread):
 	'Base class for devices'
 	def __init__(self, dev_config:dict, count, send, maxtime=60):
 		#print(f"{dev_config}")
+		self.dev_config = dev_config
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
 		self.ir = dev_config.get('IR', {})
