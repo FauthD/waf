@@ -19,8 +19,10 @@
 #
 
 
+import time
 from . import Device
 
 class Nas(Device):
-	def __init__(self, dev_config:dict):
-		super().__init__(dev_config)
+	def __init__(self, dev_config:dict, count):
+		super().__init__(dev_config, count)
+

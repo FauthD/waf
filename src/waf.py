@@ -40,8 +40,8 @@ class Waf():
 		self.InitLogging()
 		self.config = None
 		self._stopper = systemd_stopper.install()
-		self._devices = DevicesManager(self._stopper)
-		self._remotes = RemotesManager(self._stopper)
+		self._devices = DevicesManager()
+		self._remotes = RemotesManager()
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
@@ -112,7 +112,8 @@ class Waf():
 		except Exception as ex:
 			print(f'{ex}')
 		finally:
-			self._devices.stop()
+			self._devices.Stop()
+			self._remotes.Stop()
 			logging.debug('=== Stop ===')
 
 

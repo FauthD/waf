@@ -19,14 +19,16 @@
 #
 
 
+import time
 from . import Device
 
 ###########################################
 class Vdr(Device):
-	def __init__(self, dev_config:dict):
-		super().__init__(dev_config)
+	def __init__(self, dev_config:dict, count):
+		super().__init__(dev_config, count)
 		ir = dev_config['IR']
 		if isinstance(ir, dict):
 			on = ir['POWER_ON']
 			off = ir['POWER_OFF']
 			# print(on, off)
+

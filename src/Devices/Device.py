@@ -28,14 +28,14 @@ from Helpers import States,Modifier,Timeout,Watchclock
 
 class Device(threading.Thread):
 	'Base class for devices'
-	def __init__(self, dev_config:dict, count, stopper, maxtime=60):
+	def __init__(self, dev_config:dict, count, maxtime=60):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
 		self._timeout = Timeout(maxtime)
 		self._busy_count = count
-		self._stopper = stopper
+		self._stop_ = threading.Event()
 		self._start_time = Watchclock()
 		self._oldstate = States.NONE
 		self._newstate = States.NONE
@@ -43,14 +43,14 @@ class Device(threading.Thread):
 		self._available = threading.Event()
 		self._On = False
 		self._GlobalMute = False
-		# self.setDaemon(True)
 		self.start()
 
 ###########################################
 	def Validate(self):
 		pass
 	
-	def stop(self):
+	def Stop(self):
+		self._stop_.set()
 		self._newstate = States.NONE
 		with self._work:
 			self._work.notify()
@@ -77,7 +77,7 @@ class Device(threading.Thread):
 		self._timeout.Reset()
 		exitstatus = 1
 		count = 0
-		while (exitstatus != 0) and not self._timeout.isExpired() and self._stopper.run:
+		while (exitstatus != 0) and not self._timeout.isExpired() and not self._stop_.is_set():
 			time.sleep(0.5)
 			#run_time = watchclock.Watchclock()
 			(command_output, exitstatus) = pexpect.run(f'ping -i 0.3 -c1 {self._devicename}', withexitstatus=True)
@@ -115,7 +115,7 @@ class Device(threading.Thread):
 	# runs as a thread
 	def run(self):
 		self._available.set()
-		while self._stopper.run:
+		while not self._stop_.is_set():
 
 			jmp = {
 				# states
@@ -157,7 +157,7 @@ class Device(threading.Thread):
 		logging.debug(f' {self.getName()} Off')
 
 	def WatchTV(self):
-		time.sleep(50)
+		time.sleep(30)
 		pass
 
 	def WatchTvMovie(self):

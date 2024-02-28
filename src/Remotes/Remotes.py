@@ -30,13 +30,12 @@ from .DummyRemote import DummyRemote
 
 class RemotesManager():
 	'Manager for Remotes'
-	def __init__(self, stopper):
+	def __init__(self):
 		super().__init__()
 		# self.config = None
 		self._remotes = []
 		self.RX_Fifo = queue.Queue()
 		self.TX_Fifo = queue.Queue()
-		self._stopper = stopper
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -44,7 +43,7 @@ class RemotesManager():
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self.RX_Fifo, self._stopper)
+				ret = instance(cfg, self.RX_Fifo)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -82,6 +81,11 @@ class RemotesManager():
 				remote.Validate()
 			else:
 				raise WafException("RemotesManager: A remote control is None")
+
+	def Stop(self):
+		for remote in self._remotes:
+			if remote is not None:
+				remote.Stop()
 
 ###########################################
 	def Send(self, code):

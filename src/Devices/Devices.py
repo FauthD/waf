@@ -39,7 +39,7 @@ from StatusLeds import StatusLedsManager
 
 class DevicesManager(Dispatcher):
 	'Manager for Devices'
-	def __init__(self, stopper):
+	def __init__(self):
 		super().__init__()
 		self.config = {}
 		self._devices = []
@@ -49,7 +49,6 @@ class DevicesManager(Dispatcher):
 		self._status_leds = StatusLedsManager()
 		self._mute = threading.Event()
 		self._busy_count = Counter()
-		self._stopper = stopper
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -57,7 +56,7 @@ class DevicesManager(Dispatcher):
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self._busy_count, self._stopper)
+				ret = instance(cfg, self._busy_count)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -107,11 +106,11 @@ class DevicesManager(Dispatcher):
 				if device is not None:
 					device.SetState(state)
 
-	def stop(self):
+	def Stop(self):
 		with self.lock:
 			for device in self._devices:
 				if device is not None:
-					device.stop()
+					device.Stop()
 
 	def getTime(self):
 		return self._time.getTime()
