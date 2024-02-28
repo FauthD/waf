@@ -24,6 +24,7 @@ import time
 import errno
 import selectors
 import logging
+import threading
 from dataclasses import dataclass
 
 VID=0x1209
@@ -59,7 +60,7 @@ class Pixel:
 Pixels = [Pixel() for i in range(NUM_PIXEL+1)]
 
 class IrmpHidRaw():
-	def __init__(self, device_path:str=DefaultIrmpDevPath, map:str=DEFAULT_MAPFILE, mapdir:str=DEFAULT_MAPDIR):
+	def __init__(self, device_path:str=DefaultIrmpDevPath, map:str=DEFAULT_MAPFILE, mapdir:str=DEFAULT_MAPDIR, stop=None):
 		self._device_path = device_path
 		self._hidraw_fd = None
 		self._buffer_size=REPORT_SIZE
@@ -68,6 +69,11 @@ class IrmpHidRaw():
 		self._keymap = {}
 		self._codemap = {}
 		self._remotes = []
+		self.RxThread = None
+		if stop is None:
+			self._stop_= threading.Event()
+		else:
+			self._stop_ = stop
 
 	###############################################
 	def open(self):
@@ -192,13 +198,13 @@ class IrmpHidRaw():
 
 	###############################################
 	def ReadIr(self):
-		logging.debug("Read the data in endless loop")
+		#logging.debug("Read the data in endless loop")
 		selector = selectors.DefaultSelector()
 		selector.register(self._hidraw_fd, selectors.EVENT_READ)
 		
 		try:
-			while True:
-				events = selector.select()
+			while not self._stop_.is_set():
+				events = selector.select(timeout=1)
 				for key, _ in events:
 					if key.fileobj == self._hidraw_fd:
 						d = self.read()
@@ -206,6 +212,18 @@ class IrmpHidRaw():
 							self.Decode(d)	# finally calls IrReceiveHandler
 		finally:
 			selector.unregister(self._hidraw_fd)
+
+	###############################################
+	def StartRxThread(self):
+		self.RxThread = threading.Thread(target=self.ReadIr, args=())
+		self.RxThread.start()
+
+	###############################################
+	def StopRxThread(self):
+		self._stop_.set()
+		if self.RxThread is not None:
+			self.RxThread.join()
+			self.RxThread = None
 
 	###############################################
 	def SendIrReport(self, data):
