@@ -29,8 +29,6 @@ from Helpers import States,Modifier,Timeout,Watchclock
 class Vdr(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
-		self.on = self.ir.get('POWER_ON', 'unknown')
-		self.off = self.ir.get('POWER_OFF', 'unknown')
 
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
@@ -84,12 +82,12 @@ class Vdr(Device):
 
 	def ServerOn_IR(self):
 		logging.debug(f'{self.getName()} On_IR')
-		self.Send(self.on)
+		self.SendIR('POWER_ON')
 		# should turn on the vdr mainboard via CIR
 
 	def ServerOff_IR(self):
 		logging.debug(f'{self.getName()} Off')
-		self.Send(self.off)
+		self.SendIR('POWER_OFF')
 		# Must be configured in VDR!
 
 	def TurnOn(self):

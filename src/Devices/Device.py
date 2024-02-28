@@ -48,7 +48,7 @@ class Device(threading.Thread):
 		self._available = threading.Event()
 		self._On = False
 		self._GlobalMute = False
-		self._Send = send
+		self._SendIR = send
 		self.start()
 
 ###########################################
@@ -160,8 +160,10 @@ class Device(threading.Thread):
 		self._available.set()
 
 ###########################################
-	def Send(self, code):
-		self._Send(code)
+	def SendIR(self, cmd, repeat=1):
+		Key = self.ir.get(cmd, 'unknown')
+		for i in range(repeat):
+			self._SendIR(Key)
 
 	def TurnOn(self):
 		logging.debug(f' {self.getName()} On')

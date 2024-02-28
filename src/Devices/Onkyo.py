@@ -31,11 +31,11 @@ DEFAULT_VOLUME=20
 class Onkyo(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
-		self.receiver = eiscp.eISCP(self._devicename, self.ir.get('ONKYO_PORT', 60128))
+		self.receiver = eiscp.eISCP(self._devicename, self.dev_config.get('PORT', 60128))
 		self._once = False;
 #FIXME:		self._mute = mute_event
 		self._on_timer = Timeout(13)
-		self._volume=self.dev_config.get('ONKYO_DLNA_VOLUME', DEFAULT_VOLUME)
+		self._volume=self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME)
 		self._ipos = 3
 
 	def __del__(self):
@@ -44,7 +44,7 @@ class Onkyo(Device):
 
 	def RepeatStart(self):
 		logging.debug('%s RepeatStart', self.getName())
-		self.Send(self.ir.get('POWER_ON', 'unknown'))
+		self.SendIR('POWER_ON')
 		newstate = self._newstate
 		if newstate==States.WATCHTVMOVIE:
 			self.SelectTV_IR()
@@ -62,14 +62,13 @@ class Onkyo(Device):
 			super().logTime()
 			self._once = True
 
-	def Send(self, cmd):
+	def SendIR(self, cmd):
 		logging.debug(f' Onkyo Send {cmd}')
-		for i in range(4):
-			super().Send(cmd)
+		super().SendIR(cmd, 4)
 
 	def TurnOn(self):
 		super().TurnOn()
-		self.Send(self.ir.get('POWER_ON', 'unknown'))
+		self.SendIR('POWER_ON')
 		self._on_timer.Reset()
 		self._On = self.WaitForHost()
 		if self._newstate==States.WATCHTVMOVIE:
@@ -90,7 +89,7 @@ class Onkyo(Device):
 				self.SelectTV()
 				self._oldstate=States.WATCHTVMOVIE
 
-		self.Send(self.ir.get('POWER_OFF', 'unknown'))
+		self.SendIR('POWER_OFF')
 		self._once = False
 		self._On = False
 		if self.receiver is not None:
@@ -158,7 +157,7 @@ class Onkyo(Device):
 	def GlobalMute(self):
 		super().GlobalMute()
 		if self._On:
-			self.Send(self.ir.get('MUTE', 'unknown'))
+			self.SendIR('MUTE')
 
 	def GlobalUnMute(self):
 		super().GlobalUnMute()
@@ -168,7 +167,7 @@ class Onkyo(Device):
 	def ToggleGlobalMute(self):
 		super().ToggleGlobalMute()
 		if self._On:
-			self.Send(self.ir.get('MUTE', 'unknown'))
+			self.SendIR('MUTE')
 
 	def OnkyoVolume(self, volume):
 		if self._On:
@@ -177,30 +176,30 @@ class Onkyo(Device):
 
 	def SelectDlna(self):
 		logging.debug(f'{self.getName()} SelectDlna')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_DLNA_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME))
 		self.OnkyoRaw('SLI27')
 
 	def SelectDlna_IR(self):
 		logging.debug(f'{self.getName()} SelectDlna_IR')
-		self.Send(self.ir.get('ONKYO_NET', 'unknown'))
+		self.SendIR('NET')
 
 	def SelectTV(self):
 		logging.debug(f'{self.getName()} SelectTV')
 		self.OnkyoRaw('SLI23')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_TV_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('TV_VOLUME', DEFAULT_VOLUME))
 
 	def SelectTV_IR(self):
 		logging.debug(f'{self.getName()} SelectTV_IR')
-		self.Send(self.ir.get('ONKYO_TV_CD', 'unknown'))
+		self.SendIR('TV_CD')
 
 	def SelectBR(self):
 		logging.debug(f'{self.getName()} SelectBR')
 		self.OnkyoRaw('SLI10')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_BR_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('BR_VOLUME', DEFAULT_VOLUME))
 
 	def SelectBR_IR(self):
 		logging.debug(f'{self.getName()} SelectBR_IR')
-		self.Send(self.ir.get('ONKYO_BD_DVD', 'unknown'))
+		self.SendIR('BD_DVD')
 
 	def WatchTV(self):
 		self.TurnOff()
@@ -224,7 +223,7 @@ class Onkyo(Device):
 	def ListenRadio(self):
 		self.TurnOn()
 		self.OnkyoRaw('SLI24')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_FMRADIO_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('FMRADIO_VOLUME', DEFAULT_VOLUME))
 		logging.debug(f'{self.getName()} ListenRadio done')
 
 	def ListenIRadio(self):
@@ -232,7 +231,7 @@ class Onkyo(Device):
 		self.OnkyoRaw('SLI2B')
 		#self.OnkyoCommand('source', 'internet-radio')
 		#self.OnkyoCommand('source=internet-radio')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_IRADIO_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('IRADIO_VOLUME', DEFAULT_VOLUME))
 		self._ipos = self._StateParam
 		self.SelectIRadio()
 		logging.debug(f'{self.getName()} ListenIRadio done')
@@ -259,7 +258,7 @@ class Onkyo(Device):
 			if code in self.IR_Send:
 				send = self.IR_Send[code]
 				logging.debug(f'Send: {send}')
-				self.Send(send)
+				self.SendIR(send)
 			elif self._newstate==States.LISTENIRADIO:
 				#logging.debug('Onkyx {0}, state={1}'.format(code, self._newstate))
 				if code == 'chan+':
@@ -280,10 +279,10 @@ class Onkyo(Device):
 	def PlayWii(self):
 		logging.debug('Onkyo WII')
 		self.TurnOn()
-		self.OnkyoVolume(self.dev_config.get('ONKYO_WII_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
 
 	def WatchChromecast(self):
 		self.TurnOn()
 		logging.debug(f'{self.getName()} WatchChromecast')
 		self.OnkyoRaw('SLI23')
-		self.OnkyoVolume(self.dev_config.get('ONKYO_CROMECAST_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('CROMECAST_VOLUME', DEFAULT_VOLUME))

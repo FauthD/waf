@@ -18,6 +18,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import time
+import logging
 
 from . import Device
 
@@ -25,8 +27,6 @@ from . import Device
 class VdrOnboard(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
-		ir = dev_config['IR']
-		if isinstance(ir, dict):
-			on = ir['POWER_ON']
-			off = ir['POWER_OFF']
-			# print(on, off)
+
+# rest is todo
+		
