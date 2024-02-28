@@ -24,11 +24,16 @@ from . import Device
 
 ###########################################
 class Vdr(Device):
-	def __init__(self, dev_config:dict, count):
-		super().__init__(dev_config, count)
+	def __init__(self, dev_config:dict, count, send):
+		super().__init__(dev_config, count, send)
 		ir = dev_config['IR']
 		if isinstance(ir, dict):
 			on = ir['POWER_ON']
 			off = ir['POWER_OFF']
 			# print(on, off)
 
+	def WatchTV(self):
+		time.sleep(3)
+		self.Send('rc6 KEY_OK')
+		time.sleep(3)
+		pass

@@ -67,7 +67,7 @@ class Waf():
 		try:
 			self.ReadConfig()
 			if self.config is not None:
-				self._devices.Init(self.config)
+				self._devices.Init(self.config, self._remotes.Send)
 				self._remotes.Init(self.config)
 				ret = True
 		except Exception as e:

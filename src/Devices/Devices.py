@@ -51,12 +51,12 @@ class DevicesManager(Dispatcher):
 		self._busy_count = Counter()
 
 ###########################################
-	def InstantiateClass(self, cfg:dict):
+	def InstantiateClass(self, cfg:dict, send):
 		class_name = cfg.get('class', 'UnknownClass')
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self._busy_count)
+				ret = instance(cfg, self._busy_count, send)
 			else:
 				logging.info(f"Class '{class_name}' not found.")
 				ret = None
@@ -67,7 +67,7 @@ class DevicesManager(Dispatcher):
 		return ret
 
 ###########################################
-	def Init(self, config:dict):
+	def Init(self, config:dict, send):
 		super().Init(config)
 		self._status_leds.Init(self.config)
 
@@ -81,7 +81,7 @@ class DevicesManager(Dispatcher):
 				if 'name' not in device:
 					device['name'] = k
 				logging.info (f"Init Devices: {k}")
-				self._devices.append(self.InstantiateClass(device))
+				self._devices.append(self.InstantiateClass(device, send))
 		else:
 			logging.info("devices must exist and be a dict (ensure to add a space after the :)")
 

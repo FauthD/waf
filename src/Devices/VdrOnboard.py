@@ -23,8 +23,8 @@ from . import Device
 
 ###########################################
 class VdrOnboard(Device):
-	def __init__(self, dev_config:dict, count):
-		super().__init__(dev_config, count)
+	def __init__(self, dev_config:dict, count, send):
+		super().__init__(dev_config, count, send)
 		ir = dev_config['IR']
 		if isinstance(ir, dict):
 			on = ir['POWER_ON']

@@ -23,6 +23,7 @@ import time
 import os
 import socket
 import queue
+import selectors
 
 from enum import Enum
 
@@ -124,7 +125,10 @@ class LircTransmitter(LircReceiver):
 		super().__init__(socket_type, connect, None, False, stop)
 		self.name='LircTransmitter'
 		self._parser = ReplyParser()
-
+		self._select = selectors.DefaultSelector()
+		self._select.register(self.client_socket, selectors.EVENT_READ)
+		self._buffer = bytearray(0)
+	
 	# runs as a thread
 	def run(self):
 		self.SocketConnect()
@@ -137,16 +141,40 @@ class LircTransmitter(LircReceiver):
 		remote, key = code.split()
 		cmd_string = f'SEND_ONCE {remote} {key}\n'
 		try:
-			self.client_socket.sendall(cmd_string.encode("utf-8"))
+			self.client_socket.sendall(cmd_string.encode("ascii"))
 		except Exception as e:
 			logging.error(f"Error sending data to client: {e}")
 
-		while not self._parser.is_completed() and not self._stop_.is_set():
-			line = self._conn.readline(1)
-			if not line:
-				raise TimeoutException('No data from lircd host.')
-			self._parser.feed(line)
-		return self._parser
+		try:
+			while not self._parser.is_completed() and not self._stop_.is_set():
+				line = self.readline(1)
+				if not line:
+					raise TimeoutException('No data from lircd host.')
+				self._parser.feed(line)
+		except Exception as e:
+			logging.error(f"Error communicating with lircd: {e}")
+
+
+######################################################################
+# Taken from lirc-0.10.1 python-pkg/lirc/client.py and modified slightly
+######################################################################
+
+	def readline(self, timeout: float = None) -> str:
+		''' Implements readline(). '''
+		if timeout:
+			start = time.perf_counter()
+		while b'\n' not in self._buffer:
+			ready = self._select.select(
+				start + timeout - time.perf_counter() if timeout else timeout)
+			if ready == []:
+				if timeout:
+					raise TimeoutException(
+						"readline: no data within %f seconds" % timeout)
+				else:
+					return None
+			self._buffer += self.client_socket.recv(4096)
+		line, self._buffer = self._buffer.split(b'\n', 1)
+		return line.decode('ascii', 'ignore')
 
 ######################################################################
 # Below code has been taken from lirc-0.10.1 python-pkg/lirc/client.py

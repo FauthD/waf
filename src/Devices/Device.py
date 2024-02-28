@@ -28,7 +28,7 @@ from Helpers import States,Modifier,Timeout,Watchclock
 
 class Device(threading.Thread):
 	'Base class for devices'
-	def __init__(self, dev_config:dict, count, maxtime=60):
+	def __init__(self, dev_config:dict, count, send, maxtime=60):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
@@ -43,6 +43,7 @@ class Device(threading.Thread):
 		self._available = threading.Event()
 		self._On = False
 		self._GlobalMute = False
+		self._Send = send
 		self.start()
 
 ###########################################
@@ -150,6 +151,13 @@ class Device(threading.Thread):
 	def SetIrCommand(self, code):
 		pass
 
+	def ResetBusy(self):
+		self._available.set()
+
+###########################################
+	def Send(self, code):
+		self._Send(code)
+
 	def TurnOn(self):
 		logging.debug(f' {self.getName()} On')
 
@@ -157,7 +165,7 @@ class Device(threading.Thread):
 		logging.debug(f' {self.getName()} Off')
 
 	def WatchTV(self):
-		time.sleep(30)
+		# time.sleep(30)
 		pass
 
 	def WatchTvMovie(self):

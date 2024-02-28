@@ -23,6 +23,6 @@ import time
 from . import Device
 
 class Nas(Device):
-	def __init__(self, dev_config:dict, count):
-		super().__init__(dev_config, count)
+	def __init__(self, dev_config:dict, count, send):
+		super().__init__(dev_config, count, send)
 
