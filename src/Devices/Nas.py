@@ -20,9 +20,33 @@
 
 
 import time
+import logging
+
 from . import Device
 
 class Nas(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
 
+	def RepeatStart(self):
+		logging.debug(f'{self.getName()} RepeatStart')
+		self.WakeOnLan()
+
+	def TurnOn(self):
+		super().TurnOn()
+		self.WakeOnLan()
+		self._On = self.WaitForHost()
+
+	def TurnOff(self):
+		self._On = False
+
+	def WatchTV(self):
+		pass
+		#logging.debug('StartVdrOnEis')
+		#Remote('cmd@eis', 'vdr_start.sh')
+
+	def WatchTvMovie(self):
+		pass
+
+	def ListenMusic(self):
+		pass
