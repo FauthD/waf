@@ -107,10 +107,15 @@ dispatch:
     WAF_USESPEAKER: usespeaker
 
 remotes:
-  lirc:
+  lirc_local:
     class: lirc
     tx: False
     socket: /tmp/lircd
+  lirc_remote:
+    class: lirc
+    tx: False
+    host: regen
+    port: 8765
   irmp:
     class: irmp
     device: /dev/irmp_stm32
