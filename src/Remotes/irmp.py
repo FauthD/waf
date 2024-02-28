@@ -28,14 +28,18 @@ from . Remote import Remote
 ###########################################
 class irmp(Remote):
 	'Send/receive IR codes with irmp'
-	def __init__(self, cfg:dict, RX_Fifo:queue, stopper):
-		super().__init__(cfg, RX_Fifo, stopper)
+	def __init__(self, cfg:dict, RX_Fifo:queue):
+		super().__init__(cfg, RX_Fifo)
 		self.device = cfg.get('device', '/dev/irmp_stm32')
-		self._irmp = IrmpConnector(self.device, self.RX_Fifo, self.rx_enable)
+		self._irmp = IrmpConnector(self.device, self.RX_Fifo, self.rx_enable, self._stop_)
 
 	def Init(self):
 		super().Init()
 		self._irmp.ReadConfig()
+
+	def Stop(self):
+		super().Stop()
+		self._irmp.Stop()
 
 ###########################################
 	def Send(self, code):
@@ -51,23 +55,24 @@ class irmp(Remote):
 		except:
 			logging.info(f"Send unknown code: '{remote} {key}'")
 
-
 ##############################################
 class IrmpConnector(Irmp.IrmpHidRaw):
-	def __init__(self, device, RX_Fifo, rx_enable):
-		super().__init__(device)
+	def __init__(self, device, RX_Fifo, rx_enable, stop):
+		super().__init__(device_path=device, stop=stop)
 		self.RX_Fifo = RX_Fifo
 		self.rx_enable = rx_enable
 		self.open()
-		self.RxThread = threading.Thread(target=self.ReadIr, args=())
-		self.RxThread.setDaemon(True)
-		self.RxThread.start()
+		self.StartRxThread()
 
 	def __del__(self):
+		self.Stop()
+
+	def Stop(self):
+		self.StopRxThread()
 		self.close()
 
 ##############################################
-	# callback from IrmpHidRaw (ReadIr thread)
+	# callback from IrmpHidRaw (RxThread)
 	def IrReceiveHandler(self, Protcol, Addr, Command, Flag):
 		irmp_fulldata = f"{Protcol:02x}{Addr:04x}{Command:04x}00"
 		try:
