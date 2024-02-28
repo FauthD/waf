@@ -18,7 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# pip install pexpect
+
 import pexpect
 import time
 import logging
@@ -32,6 +32,10 @@ class Device(threading.Thread):
 		#print(f"{dev_config}")
 		self._devicename = dev_config.get('name', 'unknown')
 		super().__init__(name=self._devicename)
+		self.ir = dev_config.get('IR', {})
+		if not isinstance(self.ir, dict):
+			logging.error(f'{self.getName()} IR must be a dict')
+
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
 		self._timeout = Timeout(maxtime)
 		self._busy_count = count
