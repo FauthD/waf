@@ -33,7 +33,6 @@ class Onkyo(Device):
 		super().__init__(dev_config, count, send)
 		self.receiver = eiscp.eISCP(self._devicename, self.dev_config.get('PORT', 60128))
 		self._once = False;
-#FIXME:		self._mute = mute_event
 		self._on_timer = Timeout(13)
 		self._volume=self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME)
 		self._ipos = 3
@@ -45,16 +44,15 @@ class Onkyo(Device):
 	def RepeatStart(self):
 		logging.debug('%s RepeatStart', self.getName())
 		self.SendIR('POWER_ON')
-		newstate = self._newstate
-		if newstate==States.WATCHTVMOVIE:
+		if self._newstate==States.WATCHTVMOVIE:
 			self.SelectTV_IR()
 			if self._on_timer.isExpired():
-				self._mute.set()    # tell TV that we are ready to play
-		elif newstate==States.WATCHBRMOVIE:
+				self.SetExternSpeaker()    # tell TV that we are ready to play
+		elif self._newstate==States.WATCHBRMOVIE:
 			self.SelectBR_IR()
 			if self._on_timer.isExpired():
-				self._mute.set()    # tell TV that we are ready to play
-		elif newstate==States.LISTENMUSICDLNA:
+				self.SetExternSpeaker()    # tell TV that we are ready to play
+		elif self._newstate==States.LISTENMUSICDLNA:
 			self.SelectDlna_IR()
 
 	def logTime(self):
@@ -71,8 +69,6 @@ class Onkyo(Device):
 		self.SendIR('POWER_ON')
 		self._on_timer.Reset()
 		self._On = self.WaitForHost()
-		if self._newstate==States.WATCHTVMOVIE:
-			self._mute.set()    # tell TV that we are ready to play
 
 	NeedPrepare = [
 		States.LISTENMUSICDLNA,
@@ -207,10 +203,25 @@ class Onkyo(Device):
 	def WatchTvMovie(self):
 		self.TurnOn()
 		self.SelectTV()
+		self.SetExternSpeaker()    # tell TV that we are ready to play
 
 	def WatchBrMovie(self):
 		self.TurnOn()
 		self.SelectBR()
+		self.SetExternSpeaker()    # tell TV that we are ready to play
+
+	def PlayWii(self):
+		logging.debug('Onkyo WII')
+		self.TurnOn()
+		self.OnkyoVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
+		self.SetExternSpeaker()    # tell TV that we are ready to play
+
+	def WatchChromecast(self):
+		self.TurnOn()
+		logging.debug(f'{self.getName()} WatchChromecast')
+		self.OnkyoRaw('SLI23')
+		self.OnkyoVolume(self.dev_config.get('CROMECAST_VOLUME', DEFAULT_VOLUME))
+		self.SetExternSpeaker()    # tell TV that we are ready to play
 
 	def UseSpeaker(self):
 		self.WatchTvMovie()
@@ -275,14 +286,3 @@ class Onkyo(Device):
 					self._ipos=40
 
 				self.SelectIRadio()
-
-	def PlayWii(self):
-		logging.debug('Onkyo WII')
-		self.TurnOn()
-		self.OnkyoVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
-
-	def WatchChromecast(self):
-		self.TurnOn()
-		logging.debug(f'{self.getName()} WatchChromecast')
-		self.OnkyoRaw('SLI23')
-		self.OnkyoVolume(self.dev_config.get('CROMECAST_VOLUME', DEFAULT_VOLUME))

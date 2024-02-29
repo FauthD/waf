@@ -47,6 +47,7 @@ class Device(threading.Thread):
 		self._work = threading.Condition()
 		self._available = threading.Event()
 		self._On = False
+		self._mute_call = None
 		self._GlobalMute = False
 		self._SendIR = send
 		self.start()
@@ -70,6 +71,16 @@ class Device(threading.Thread):
 
 	def logTime(self):
 		logging.debug(f' Log {self.getName()} after {self.getTime():.1f} secs')
+
+	def ConnectExternSpeaker(self, callback):
+		self._mute_call = callback
+
+	def SetExternSpeaker(self):
+		if self._mute_call is not None:
+			self._mute_call()
+
+	def ReceiveMute(self):
+		self.SetState(Modifier.USESPEAKER)
 
 	def WakeOnLan(self):
 		logging.debug(f'WakeOnLan {self._devicename} {self._macaddress}')

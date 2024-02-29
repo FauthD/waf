@@ -32,7 +32,6 @@ class LG_Netcast(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
 
-		# FIXME: self._mute = mute_event
 		self._externspeaker=False
 		self.muted=False
 		self.volume=DEFAULT_VOLUME
@@ -207,20 +206,10 @@ class LG_Netcast(Device):
 	def WatchTvMovie(self):
 		self.TurnOn()
 		self.LG_Hdmi(4)
-		#logging.debug('{0} WaitMute1'.format(self.getName()))
-		self._mute.wait(40)
-		#logging.debug('{0} WaitMute2'.format(self.getName()))
-		self.LG_Mute()
-		self._externspeaker=True
 
 	def WatchBrMovie(self):
 		self.TurnOn()
 		self.LG_Hdmi(1)
-		#logging.debug('%s WaitMute1', self.getName())
-		self._mute.wait(40)
-		#logging.debug('%s WaitMute2', self.getName())
-		self.LG_Mute()
-		self._externspeaker=True
 
 	def ListenMusic(self):
 		self.TurnOff()
@@ -236,12 +225,7 @@ class LG_Netcast(Device):
 	def WatchChromecast(self):
 		self.TurnOn()
 		self.LG_Hdmi(3)
-		# self.SetVolume(c.LG_TV_CROMECAST)
-		#logging.debug('%s WaitMute1', self.getName())
-		self._mute.wait(40)
-		#logging.debug('%s WaitMute2', self.getName())
-		self.LG_Mute()
-		self._externspeaker=True
+		self.UseSpeaker()
 
 	def WatchDlnaOnTV(self):
 		self.TurnOn()
@@ -251,8 +235,4 @@ class LG_Netcast(Device):
 		self.TurnOn()
 		#logging.debug('LG_COMPONENT1')
 		self.SendIR('WII')
-		#logging.debug('{0} WaitMute1'.format(self.getName()))
-		#self._mute.wait(40)
-		#logging.debug('{0} WaitMute2'.format(self.getName()))
-		# self.SetVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
 		self.UseSpeaker()

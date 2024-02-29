@@ -47,8 +47,20 @@ class DevicesManager(Dispatcher):
 		self.TX_Fifo = queue.Queue()
 		self._time = watchclock.Watchclock()
 		self._status_leds = StatusLedsManager()
-		self._mute = threading.Event()
 		self._busy_count = Counter()
+		self._mute_receivers = []
+
+	def ConnectMute(self, device, instance):
+		if device.get('SEND_MUTE', False):
+			instance.ConnectMute(self.ReceiveMute)
+
+		if device.get('RECEIVE_MUTE', False):
+			self._mute_receivers.append(instance)
+
+	def ReceiveMute(self):
+		for instance in self._mute_receivers:
+			if instance is not None:
+				instance.ReceiveMute()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict, send):
@@ -81,7 +93,9 @@ class DevicesManager(Dispatcher):
 				if 'name' not in device:
 					device['name'] = k
 				logging.info (f"Init Devices: {k}")
-				self._devices.append(self.InstantiateClass(device, send))
+				instance = self.InstantiateClass(device, send)
+				self._devices.append(instance)
+				self.ConnectMute(device, instance)
 		else:
 			logging.info("devices must exist and be a dict (ensure to add a space after the :)")
 
@@ -140,7 +154,6 @@ class DevicesManager(Dispatcher):
 
 	def Dispatch(self, ir_code:str):
 		self._time.Reset()
-		self._mute.clear()
 		if super().Dispatch_(ir_code):
 			self.WaitFinish()
 			self.Clean()
