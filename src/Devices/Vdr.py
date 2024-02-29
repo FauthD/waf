@@ -71,7 +71,7 @@ class Vdr(Device):
 		logging.debug(f'SvdrPsend {cmd}')
 		#run_time = watchclock.Watchclock()
 		exitstatus = 1
-		command = "svdrpsend -d f{self._devicename} '{cmd}'"
+		command = f"svdrpsend -d {self._devicename} '{cmd}'"
 		(command_output, exitstatus) = pexpect.run(command, withexitstatus=True)
 		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
@@ -86,7 +86,7 @@ class Vdr(Device):
 		# should turn on the vdr mainboard via CIR
 
 	def ServerOff_IR(self):
-		logging.debug(f'{self.getName()} Off')
+		logging.debug(f'{self.getName()} Off_IR')
 		self.SendIR('POWER_OFF')
 		# Must be configured in VDR!
 
