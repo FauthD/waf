@@ -50,8 +50,9 @@ devices:
       HDMI: LG_TV LG_HDMI
       WII: LG_TV LG_COMPONENT1
     INPUTS:
+      BLUERAY: 1
+      CROMECAST: 3
       VDR: 4
-      # fixme: rest
 
   blueray:
     mac: '00:00:00:00:00:00'

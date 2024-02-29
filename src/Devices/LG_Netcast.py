@@ -60,7 +60,8 @@ class LG_Netcast(Device):
 #		self.Send('POWEROFF')
 		self._On = False
 
-	def LG_Hdmi(self, number):
+	def LG_Hdmi(self, Key):
+		number = self.dev_config.get('INPUTS', {}).get(Key, 0)
 		logging.debug(f' {self.getName()} Hdmi{number}')
 		self.SendIR(f'HDMI{number}')
 
@@ -198,18 +199,18 @@ class LG_Netcast(Device):
 
 	def WatchTV(self):
 		self.TurnOn()
-		self.LG_Hdmi(4)
+		self.LG_Hdmi('VDR')
 		self.LG_UnMute()
 		self.SetVolume(self.dev_config.get('TV_VOLUME', DEFAULT_VOLUME))
 		self._externspeaker=False
 
 	def WatchTvMovie(self):
 		self.TurnOn()
-		self.LG_Hdmi(4)
+		self.LG_Hdmi('VDR')
 
 	def WatchBrMovie(self):
 		self.TurnOn()
-		self.LG_Hdmi(1)
+		self.LG_Hdmi('BLUERAY')
 
 	def ListenMusic(self):
 		self.TurnOff()
@@ -224,7 +225,7 @@ class LG_Netcast(Device):
 
 	def WatchChromecast(self):
 		self.TurnOn()
-		self.LG_Hdmi(3)
+		self.LG_Hdmi('CROMECAST')
 		self.UseSpeaker()
 
 	def WatchDlnaOnTV(self):
