@@ -52,7 +52,7 @@ class DevicesManager(Dispatcher):
 
 	def ConnectMute(self, device, instance):
 		if device.get('SEND_MUTE', False):
-			instance.ConnectMute(self.ReceiveMute)
+			instance.ConnectExternSpeaker(self.ReceiveMute)
 
 		if device.get('RECEIVE_MUTE', False):
 			self._mute_receivers.append(instance)
