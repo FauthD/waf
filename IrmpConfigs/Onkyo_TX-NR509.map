@@ -1,0 +1,71 @@
+# ONKYO_POWER_ON
+# ONKYO_POWEROFF
+# ONKYO_NET
+# ONKYO_TV_CD
+# ONKYO_BD_DVD
+026dd2008200 KEY_UP
+026dd2008300 KEY_DOWN
+0202d2004d00 KEY_MENU
+026dd2009700 KEY_OK
+# insert below the scancode for button "Back"
+026cd2005400 KEY_ESC
+026dd2008400 KEY_LEFT
+026dd2008500 KEY_RIGHT
+# KEY_RED
+# KEY_GREEN
+# KEY_YELLOW
+# KEY_BLUE
+026dd2000a00 KEY_0
+026dd2000f00 KEY_1
+026dd2000e00 KEY_2
+02acd2008a00 KEY_3
+0202d2008700 KEY_4
+026dd2004800 KEY_5
+026dd2009f00 KEY_6
+026dd2000900 KEY_7
+026dd2000b00 KEY_8
+026cd2008c00 KEY_9
+026cd2005500 KEY_INFO
+026dd2001500 KEY_PLAY
+026dd2001600 KEY_PAUSE
+# KEY_PLAYPAUSE
+026dd2001300 KEY_STOP
+026dd2001800 KEY_RECORD
+026dd2001900 KEY_FASTFORWARD
+026dd2001a00 KEY_REWIND
+# KEY_NEXT
+# insert below the scancode for button "Prev"
+# KEY_BACK
+# insert below the scancode for button "Power"
+# KEY_POWER2
+026dd2000000 KEY_CHANNELUP
+026dd2000100 KEY_CHANNELDOWN
+# insert below the scancode for button "PrevChannel"
+0202d2005d00 KEY_PREVIOUS
+026dd2000200 KEY_VOLUMEUP
+026dd2000300 KEY_VOLUMEDOWN
+026dd2000500 KEY_MUTE
+# KEY_SUBTITLE
+# insert below the scancode for button "Schedule"
+# KEY_EPG
+# KEY_CHANNEL
+# insert below the scancode for button "Commands"
+# KEY_FAVORITES
+# insert below the scancode for button "Audio"
+# KEY_MODE
+# insert below the scancode for button "Timers"
+# KEY_TIME
+# insert below the scancode for button "Recordings"
+# KEY_PVR
+# KEY_SETUP
+# insert below the scancodes for buttons "User0" ... "User9"
+# KEY_TEXT
+# KEY_PROG1
+# KEY_PROG2
+# KEY_PROG3
+# KEY_PROG4
+# KEY_AUDIO
+# KEY_VIDEO
+# KEY_IMAGES
+# KEY_FN
+# KEY_SCREEN

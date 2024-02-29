@@ -1,0 +1,82 @@
+
+# Created by Dieter Fauth
+#
+070015000d00 KEY_UP
+070015001100 KEY_DOWN
+070015002700 KEY_MENU
+070015000f00 KEY_OK
+# insert below the scancode for button "Back"
+# KEY_ESC
+070015000e00 KEY_LEFT
+070015001000 KEY_RIGHT
+070015001400 KEY_RED
+070015001500 KEY_GREEN
+070015001600 KEY_YELLOW
+070015001700 KEY_BLUE
+070015000c00 KEY_0
+070015000300 KEY_1
+070015000400 KEY_2
+070015000500 KEY_3
+070015000600 KEY_4
+070015000700 KEY_5
+070015000800 KEY_6
+070015000900 KEY_7
+070015000a00 KEY_8
+070015000b00 KEY_9
+# KEY_INFO
+070015003b00 KEY_PLAY
+070015003e00 KEY_PAUSE
+# KEY_PLAYPAUSE
+070015003c00 KEY_STOP
+070015003a00 KEY_RECORD
+070015003f00 KEY_FASTFORWARD
+070015003d00 KEY_REWIND
+# KEY_NEXT
+# insert below the scancode for button "Prev"
+070015001300 KEY_BACK
+# insert below the scancode for button "Power"
+070015000100 KEY_POWER2
+070015002300 KEY_CHANNELUP
+070015002400 KEY_CHANNELDOWN
+# insert below the scancode for button "PrevChannel"
+070015000200 KEY_PREVIOUS
+070015002500 KEY_VOLUMEUP
+070015002600 KEY_VOLUMEDOWN
+070015001800 KEY_MUTE
+# KEY_SUBTITLE
+# insert below the scancode for button "Schedule"
+070015002200 KEY_EPG
+# KEY_CHANNEL
+# insert below the scancode for button "Commands"
+# KEY_FAVORITES
+# insert below the scancode for button "Audio"
+# KEY_MODE
+# insert below the scancode for button "Timers"
+# KEY_TIME
+# insert below the scancode for button "Recordings"
+# KEY_PVR
+# KEY_SETUP
+# insert below the scancodes for buttons "User0" ... "User9"
+070015001900 KEY_TEXT
+# KEY_PROG1
+# KEY_PROG2
+# KEY_PROG3
+# KEY_PROG4
+# KEY_AUDIO
+# KEY_VIDEO
+# KEY_IMAGES
+# KEY_FN
+# KEY_SCREEN
+070015001a00 RC5_AV
+070015001200 RC5_INFO
+070015002100 RC5_LIST
+
+# Notes from my lirc URC7962-1672.conf:
+# KEY_MODE                0x155A # magic 00622 (was KEY_AV)
+# KEY_LIST                0x1561 # magic 00465
+# KEY_WWW                 0x17E6  # magic 00257 (these magics for 7962 are wild guesses, but produce a unique code)
+# KEY_ENTER               0x17FE  # magic 00258 (looks like codes are for another device, I hope you do not get conflicts)
+# KEY_NEXT                0x17F6  # magic 00259
+# KEY_BACK                0x054F  # magic 00260
+# KEY_ZOOM                0x0547  # magic 00261
+#
