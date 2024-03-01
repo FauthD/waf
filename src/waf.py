@@ -66,10 +66,11 @@ class Waf():
 	def Init(self):
 		try:
 			self.ReadConfig()
-			if self.config is not None:
-				self._devices.Init(self.config, self._remotes.Send)
-				self._remotes.Init(self.config)
-				ret = True
+			if self.config is None:
+				raise WafException('Missing waf.yaml')
+			self._devices.Init(self.config, self._remotes.Send)
+			self._remotes.Init(self.config)
+			ret = True
 		except Exception as e:
 			logging.error(e)
 			ret = False
