@@ -26,18 +26,19 @@ import logging
 import queue
 import time
 import os
+import argparse
 import systemd_stopper
 
 from Remotes import RemotesManager
 from Devices import DevicesManager
 from Helpers import timeout,watchclock,WafException
 
+VersionString='V0.0'
 CONFIGNAME='waf.yaml'
 LOGPATH='/var/log/waf.log'
 
 class Waf():
 	def __init__(self):
-		self.InitLogging()
 		self.config = None
 		self._stopper = systemd_stopper.install()
 		self._devices = DevicesManager()
@@ -45,8 +46,7 @@ class Waf():
 
 	def ReadConfig(self, name=CONFIGNAME):
 		pathlist = []
-		pathlist.append(os.path.join('~/.config', name))
-		pathlist.append(os.path.join('/etc', name))
+		pathlist.append(os.path.join(args.config))
 		pathlist.append(name)
 		for path in pathlist:
 			logging.debug(f'Try config file {path}')
@@ -90,10 +90,6 @@ class Waf():
 			ret = False
 		return ret
 
-	def InitLogging(self):
-		logging.basicConfig(filename=LOGPATH, format='%(asctime)s.%(msecs)03d %(message)s', datefmt='%Y/%m/%d %H:%M:%S', level=logging.DEBUG)
-		logging.debug('=== Start ===')
-
 ###########################################
 	def Work(self):
 		timeout = 0.2
@@ -114,15 +110,30 @@ class Waf():
 		finally:
 			self._devices.Stop()
 			self._remotes.Stop()
-			logging.debug('=== Stop ===')
+			logging.info('=== Stop ===')
 
+
+def InitLogging():
+	path = args.logpath
+	if not os.path.isfile(path):
+		path = '/tmp/waf.log'
+		print(f'Using log file: {path} sice we cannot access the right place.')
+
+	logging.basicConfig(filename=path, format='%(asctime)s.%(msecs)03d %(message)s', datefmt='%Y/%m/%d %H:%M:%S', level=args.logLevel)
+	logging.info('=== Start ===')
 
 def main():
+	parser = argparse.ArgumentParser(prog='waf', description='A daemon to control devices like tv,amp,vdr')
+	parser.add_argument('-c', '--config', help=f'Path to config file (yaml format). (default: %(default)s)', default='/etc/waf.yaml')
+	parser.add_argument('-v', "--version", action="version", help=f'Display version and exit', version=f"%(prog) {VersionString}")
+	parser.add_argument("-l", "--logLevel", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level. (default: %(default)s)", default='DEBUG')
+	parser.add_argument("-L", "--logpath", dest="logpath", help="Set the log file. (default: %(default)s)", default=LOGPATH)
+
+	global args
+	args = parser.parse_args()
+	InitLogging()
 	c = Waf()
 	c.Work()
-	# print(globals())
-
-
 
 if __name__ == "__main__":
 	exit ( main() )
