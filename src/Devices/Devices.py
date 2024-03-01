@@ -110,7 +110,7 @@ class DevicesManager(Dispatcher):
 			if device is not None:
 				device.Validate()
 			else:
-				raise WafException("DevicesManager: A device is None")
+				logging.error("DevicesManager: Initialization of a device failed.")
 
 ###########################################
 	def SetState(self, state):

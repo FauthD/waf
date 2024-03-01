@@ -60,19 +60,26 @@ class StatusLedsManager(object):
 
 	def Validate(self):
 		if self.status_led is None:
-			raise WafException("StatusLedsManager: There is no status led defined")
+			logging.error("StatusLedsManager: No status led available.")
 
 	def GetDelay(self):
-		return self.status_led.GetDelay()
+		if self.status_led is not None:
+			return self.status_led.GetDelay()
+		else:
+			return 0.1
 
 	def Off(self):
-		self.status_led.Off()
+		if self.status_led is not None:
+			self.status_led.Off()
 
 	def On(self):
-		self.status_led.On()
+		if self.status_led is not None:
+			self.status_led.On()
 
 	def Toggle(self):
-		self.status_led.Toggle()
+		if self.status_led is not None:
+			self.status_led.Toggle()
 
 	def ShowStatus(self, num_busy):
-		self.status_led.ShowStatus(num_busy)
+		if self.status_led is not None:
+			self.status_led.ShowStatus(num_busy)
