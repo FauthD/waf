@@ -78,9 +78,6 @@ class IrmpNeopixel(StatusLed):
 		self.last_color = 0,0,0
 		self.last_num = 0
 
-	def __del__(self):
-		self.irmp.Set(0)
-
 	def String2Integers(self, string):
 		try:
 			if string is None:

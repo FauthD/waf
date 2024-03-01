@@ -45,7 +45,7 @@ class RemotesManager():
 			if instance:
 				ret = instance(cfg, self.RX_Fifo)
 			else:
-				logging.info(f"Class '{class_name}' not found.")
+				logging.error(f"Class '{class_name}' not found.")
 				ret = None
 		except Exception as e:
 			logging.info(f"{class_name} - {e}")
@@ -55,10 +55,8 @@ class RemotesManager():
 
 	def Init(self, config):
 		remotes = config.get('remotes', None)
-		# print(type(devices), devices)
 		if isinstance(remotes, dict):
 			keys = remotes.keys()
-			#print(keys)
 			for k in keys:
 				remote = remotes[k]
 				if 'name' not in remote:
@@ -66,7 +64,7 @@ class RemotesManager():
 				logging.info (f"Init Remotes: {k}")
 				self._remotes.append(self.InstantiateClass(remote))
 		else:
-			logging.info("remotes must exist and be a dict (ensure to add a space after the :)")
+			logging.critical("remotes must exist and be a dict (ensure to add a space after the :)")
 		
 		for remote in self._remotes:
 			if remote is not None:
@@ -80,7 +78,7 @@ class RemotesManager():
 			if remote is not None:
 				remote.Validate()
 			else:
-				raise WafException("RemotesManager: A remote control is None")
+				logging.error("RemotesManager: Initialization of a remote control failed.")
 
 	def Stop(self):
 		for remote in self._remotes:
