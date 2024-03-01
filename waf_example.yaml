@@ -69,11 +69,11 @@ dispatch:
     DF_A: tv
     WAF_TV: tv
     # Example for remote + key
-    "OneForAll_URC7962_S1272 KEY_ZOOM": off
-    "OneForAll_URC6440_S1672 KEY_ZOOM": off
-    "OneForAll_URC7980_V0146 KEY_POWER": off
-    DF_POWER2: off
-    WAF_POWEROFF: off
+    "OneForAll_URC7962_S1272 KEY_ZOOM": alloff
+    "OneForAll_URC6440_S1672 KEY_ZOOM": alloff
+    "OneForAll_URC7980_V0146 KEY_POWER": alloff
+    DF_POWER2: alloff
+    WAF_POWEROFF: alloff
     DF_FAV: iradio
     DF_VOL+: vol+
     DF_VOL-: vol-

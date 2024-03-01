@@ -33,7 +33,7 @@ class MyMeta(EnumMeta):
 class States(str, Enum, metaclass=MyMeta):
 	NONE='none'
 	TERMINATE='terminate'
-	OFF='off'
+	ALLOFF='alloff'
 	WATCHTV='tv'
 	LISTENMUSICDLNA='dlna'
 	WATCHTVMOVIE='movie'

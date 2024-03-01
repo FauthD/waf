@@ -136,7 +136,7 @@ class Device(threading.Thread):
 
 			jmp = {
 				# states
-				States.OFF: self.TurnOff,
+				States.ALLOFF: self.TurnOff,
 				States.WATCHTV: self.WatchTV,
 				States.WATCHTVMOVIE: self.WatchTvMovie,
 				States.WATCHBRMOVIE: self.WatchBrMovie,
