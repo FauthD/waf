@@ -125,7 +125,7 @@ def InitLogging():
 def main():
 	parser = argparse.ArgumentParser(prog='waf', description='A daemon to control devices like tv,amp,vdr')
 	parser.add_argument('-c', '--config', help=f'Path to config file (yaml format). (default: %(default)s)', default='/etc/waf.yaml')
-	parser.add_argument('-v', "--version", action="version", help=f'Display version and exit', version=f"%(prog) {VersionString}")
+	parser.add_argument('-v', "--version", action="version", help='Display version and exit', version="%(prog)s 0.0")
 	parser.add_argument("-l", "--logLevel", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level. (default: %(default)s)", default='DEBUG')
 	parser.add_argument("-L", "--logpath", dest="logpath", help="Set the log file. (default: %(default)s)", default=LOGPATH)
 
