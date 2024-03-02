@@ -62,6 +62,10 @@ class StatusLedsManager(object):
 		if self.status_led is None:
 			logging.error("StatusLedsManager: No status led available.")
 
+	def Stop(self):
+		if self.status_led is not None:
+			self.status_led.Stop()
+
 	def GetDelay(self):
 		if self.status_led is not None:
 			return self.status_led.GetDelay()

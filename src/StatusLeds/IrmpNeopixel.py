@@ -36,8 +36,7 @@ class IrmpNeopixel(StatusLed):
 			self.irmp = Irmp.IrmpHidRaw(self.device)
 			self.irmp.open()
 		except IOError as ex:
-			print(ex)
-			logging.error("You probably don't have the IRMP device.")
+			logging.error("You probably don't have the IRMP device. {ex}")
 
 		self.TranslateDict(self.status_led.get('colors', DefaultColors))
 		self.last_color = 0,0,0

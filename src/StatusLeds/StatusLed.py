@@ -29,6 +29,9 @@ class StatusLed():
 		self.delay = self.status_led.get('delay', 0.05)
 		self._Status = 0
 
+	def Stop(self):
+		pass
+
 	def GetDelay(self):
 		return self.delay
 

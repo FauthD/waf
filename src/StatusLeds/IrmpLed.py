@@ -17,44 +17,40 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+import time
 import Irmp
 from . StatusLed import StatusLed
-
-class Irmp(Irmp.IrmpHidRaw):
-	def __init__(self):
-		super().__init__()
-		self.open()
-	
-	def __del__(self):
-		self.close()
-
-	def Set(self, value):
-		try:
-			self.SendLedReport(value)
-
-		except IOError as ex:
-			print(ex)
-			print("You probably don't have the IRMP device.")
 
 #####################################################################
 class IrmpLed(StatusLed):
 	'Irmp status led handler'
 	def __init__(self, status_led:dict):
 		super().__init__(status_led)
-		self.irmp = Irmp()
+		self.device = self.status_led.get('device', '/dev/irmp_stm32')
+		try:
+			self.irmp = Irmp.IrmpHidRaw(self.device)
+			self.irmp.open()
+		except IOError as ex:
+			logging.error("You probably don't have the IRMP device. {ex}")
 
 	def __del__(self):
 		self.irmp.Set(0)
 
+	def Stop(self):
+		super().Stop()
+		self.Off()
+		self._irmp.close()
+
 	def Off(self):
 		self._Status = False
-		self.irmp.Set(self._Status)
+		self.irmp.SendLedReport(self._Status)
 
 	def On(self):
 		self._Status = True
-		self.irmp.Set(self._Status)
+		self.irmp.SendLedReport(self._Status)
 
 	def Toggle(self):
 		self._Status ^= True
-		self.irmp.Set(self._Status)
+		self.irmp.SendLedReport(self._Status)
 
