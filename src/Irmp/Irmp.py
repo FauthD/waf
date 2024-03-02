@@ -59,6 +59,15 @@ class Pixel:
 
 Pixels = [Pixel() for i in range(NUM_PIXEL+1)]
 
+def singleton(cls, *args, **kw):
+	instances = {}
+	def _singleton(*args, **kw):
+		if cls not in instances:
+			instances[cls] = cls(*args, **kw)
+		return instances[cls]
+	return _singleton
+
+@singleton
 class IrmpHidRaw():
 	def __init__(self, device_path:str=DefaultIrmpDevPath, map:str=DEFAULT_MAPFILE, mapdir:str=DEFAULT_MAPDIR, stop=None):
 		self._device_path = device_path
