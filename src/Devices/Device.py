@@ -24,6 +24,7 @@ import time
 import logging
 import threading
 from icmplib import ping
+from wakeonlan import send_magic_packet
 
 from Helpers import States,Modifier,Timeout,Watchclock
 
@@ -84,8 +85,8 @@ class Device(threading.Thread):
 		self.SetState(Modifier.USESPEAKER)
 
 	def WakeOnLan(self):
-		logging.debug(f'WakeOnLan {self._devicename} {self._macaddress}')
-		pexpect.run(f'wakeonlan {self._macaddress}')
+		logging.debug(f'WakeOnLan send_magic_packet {self._devicename} {self._macaddress}')
+		send_magic_packet(self._macaddress)
 
 	def RepeatStart(self):
 		self.WakeOnLan()
