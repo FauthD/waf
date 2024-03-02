@@ -87,7 +87,8 @@ class IrmpHidRaw():
 
 	###############################################
 	def open(self):
-		self._hidraw_fd = os.open(self._device_path, os.O_RDWR | os.O_NONBLOCK)
+		if self._hidraw_fd is None:
+			self._hidraw_fd = os.open(self._device_path, os.O_RDWR | os.O_NONBLOCK)
 		return self._hidraw_fd
 
 	###############################################
