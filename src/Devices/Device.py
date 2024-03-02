@@ -23,6 +23,7 @@ import pexpect
 import time
 import logging
 import threading
+from icmplib import ping
 
 from Helpers import States,Modifier,Timeout,Watchclock
 
@@ -94,19 +95,24 @@ class Device(threading.Thread):
 		self._timeout.Reset()
 		exitstatus = 1
 		count = 0
-		while (exitstatus != 0) and not self._timeout.isExpired() and not self._stop_.is_set():
-			time.sleep(0.5)
-			#run_time = watchclock.Watchclock()
-			(command_output, exitstatus) = pexpect.run(f'ping -i 0.3 -c1 {self._devicename}', withexitstatus=True)
-			#logging.debug('fping delay {0} {1:.1f} secs'.format(self.getName(), run_time.getTime()))
-			count += 1 # do not send the repeat too often
-			if exitstatus != 0 and count%4==0:
-				self.RepeatStart()
-		ret = not self._timeout.isExpired()
+		ret = False
+		try:
+			while not self._timeout.isExpired() and not self._stop_.is_set():
+				host = ping(self._devicename, count=1, interval=1, timeout=0.5, privileged=False)
+				if host.is_alive:
+					ret = True
+					break
+				count += 1 # do not send the repeat too often
+				if count%4==0:
+					self.RepeatStart()
+		except Exception as ex:
+			logging.critical(f'Failed pinging {self.getName()}: {ex}')
+
+		ret &= not self._timeout.isExpired()
 		if ret:
 			logging.debug(f'Found {self.getName()} after {self.getTime():.1f} secs')
 		else:
-			logging.debug(f'Failed, ping exit {self.getName()}, {exitstatus}, {command_output}')
+			logging.debug(f'Failed pinging {self.getName()} after {self.getTime():.1f} secs')
 		return ret
 
 	def Remote(self, host, cmd):

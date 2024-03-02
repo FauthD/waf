@@ -130,7 +130,7 @@ class DevicesManager(Dispatcher):
 		return self._time.getTime()
 
 	def ShowBusy(self):
-		logging.error('WaitFinish aborted {self.getTime():.1f} secs')
+		logging.error(f'WaitFinish aborted {self.getTime():.1f} secs')
 		for device in self._devices:
 			if device.isBusy():
 				logging.error(f'Still busy: {device.getName()}, breaking it')

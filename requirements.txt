@@ -1,5 +1,6 @@
 pyyaml
 pexpect
+icmplib
 gpiod
 systemd_stopper
 onkyo-eiscp
