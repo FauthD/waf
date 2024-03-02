@@ -31,7 +31,10 @@ class irmp(Remote):
 	def __init__(self, cfg:dict, RX_Fifo:queue):
 		super().__init__(cfg, RX_Fifo)
 		self.device = cfg.get('device', '/dev/irmp_stm32')
-		self._irmp = IrmpConnector(self.device, self.RX_Fifo, self.rx_enable, self._stop_)
+		self._irmp = Irmp.IrmpHidRaw(self.device)
+		self._irmp.SetIrReceiveCallback(self.IrReceiveHandler)
+		self._irmp.open()
+		self._irmp.StartRxThread()
 
 	def Init(self):
 		super().Init()
@@ -39,37 +42,8 @@ class irmp(Remote):
 
 	def Stop(self):
 		super().Stop()
-		self._irmp.Stop()
-
-###########################################
-	def Send(self, code):
-		if not self.tx_enable:
-			return
-		
-		remote, key = code.split()
-		try:
-			code = self._irmp.GetCode(remote, key)
-			data = []
-			data += [code[i:i+2] for i in range(0, len(code), 2)]
-			self._irmp.SendIrReport(data)
-		except:
-			logging.info(f"Send unknown code: '{remote} {key}'")
-
-##############################################
-class IrmpConnector(Irmp.IrmpHidRaw):
-	def __init__(self, device, RX_Fifo, rx_enable, stop):
-		super().__init__(device_path=device, stop=stop)
-		self.RX_Fifo = RX_Fifo
-		self.rx_enable = rx_enable
-		self.open()
-		self.StartRxThread()
-
-	def __del__(self):
-		self.Stop()
-
-	def Stop(self):
-		self.StopRxThread()
-		self.close()
+		self._irmp.StopRxThread()
+		self._irmp.close()
 
 ##############################################
 	# callback from IrmpHidRaw (RxThread)
@@ -85,3 +59,16 @@ class IrmpConnector(Irmp.IrmpHidRaw):
 			self.RX_Fifo.put(f"{irmp_fulldata} {Flag} {name} {remote}")
 
 
+###########################################
+	def Send(self, code):
+		if not self.tx_enable:
+			return
+		
+		remote, key = code.split()
+		try:
+			code = self._irmp.GetCode(remote, key)
+			data = []
+			data += [code[i:i+2] for i in range(0, len(code), 2)]
+			self._irmp.SendIrReport(data)
+		except:
+			logging.info(f"Send unknown code: '{remote} {key}'")

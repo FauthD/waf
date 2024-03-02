@@ -69,6 +69,7 @@ class IrmpHidRaw():
 		self._keymap = {}
 		self._codemap = {}
 		self._remotes = []
+		self.IrReceiveCallback = None
 		self.RxThread = None
 		if stop is None:
 			self._stop_= threading.Event()
@@ -194,7 +195,12 @@ class IrmpHidRaw():
 
 	###############################################
 	def IrReceiveHandler(self, Protcol, Addr, Command, Flag):
-		pass
+		if self.IrReceiveCallback is not None:
+			self.IrReceiveCallback(Protcol, Addr, Command, Flag)
+
+	###############################################
+	def SetIrReceiveCallback(self, IrReceiveCallback):
+		self.IrReceiveCallback = IrReceiveCallback
 
 	###############################################
 	def ReadIr(self):
