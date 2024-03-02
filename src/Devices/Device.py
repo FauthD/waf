@@ -117,7 +117,11 @@ class Device(threading.Thread):
 		return ret
 
 	def IsRunning(self):
-		host = ping(self._devicename, count=1, interval=1, timeout=1, privileged=False)
+		try:
+			host = ping(self._devicename, count=1, interval=1, timeout=1, privileged=False)
+		except Exception as ex:
+			logging.critical(f'Failed pinging {self.getName()}: {ex}')
+			return False
 		return host.is_alive
 
 	def Remote(self, host, cmd):
