@@ -116,6 +116,10 @@ class Device(threading.Thread):
 			logging.debug(f'Failed pinging {self.getName()} after {self.getTime():.1f} secs')
 		return ret
 
+	def IsRunning(self):
+		host = ping(self._devicename, count=1, interval=1, timeout=1, privileged=False)
+		return host.is_alive
+
 	def Remote(self, host, cmd):
 		command = f"ssh {host} '{cmd}'"
 		logging.debug(f'{command}')

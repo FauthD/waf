@@ -76,10 +76,6 @@ class Vdr(Device):
 		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
 
-	def IsRunning(self):
-		(command_output, exitstatus) = pexpect.run(f'fping -t 100 -c1 -q {self._devicename}', withexitstatus=True)
-		return exitstatus==0
-
 	def ServerOn_IR(self):
 		logging.debug(f'{self.getName()} On_IR')
 		self.SendIR('POWER_ON')

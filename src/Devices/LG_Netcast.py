@@ -18,7 +18,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import pexpect
 import time
 import logging
 from pylgnetcast import LgNetCastClient, LG_COMMAND, LG_QUERY
@@ -68,9 +67,7 @@ class LG_Netcast(Device):
 	def IsRunning(self):
 		if self._On == True:
 			return True
-			
-		(command_output, exitstatus) = pexpect.run(f'fping -t 100 -c1 -q {self._devicename}', withexitstatus=True)
-		return exitstatus==0
+		return super().IsRunning
 
 	def NetCastQuery(self, cmd):
 		if self.IsRunning():
