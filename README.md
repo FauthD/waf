@@ -57,13 +57,14 @@ Let me know if you need help. Pull requests are welcome.
 ## Reqirements
 
 - Python 3.10 (older not tested)
+- Python modules see requirements.txt
 - User must be member of groups: syslog, dialout and plugdev
   - syslog is required to access the logfile (/var/log/waf.log)
   - dialout and plugdev to access devices
 - Lirc, IRMP devices (you can choose)
 - For NeoPixel support you need a RP2040 based IRMP with my firmware.
   https://github.com/FauthD/IRMP_STM32
-
+- SvdrPsend must be installed
 
 ## Implementation
 
