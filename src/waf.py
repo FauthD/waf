@@ -33,7 +33,7 @@ from Remotes import RemotesManager
 from Devices import DevicesManager
 from Helpers import timeout,watchclock,WafException
 
-VersionString='V0.0'
+VersionString='V0.1'
 CONFIGNAME='waf.yaml'
 LOGPATH='/var/log/waf.log'
 
@@ -111,7 +111,7 @@ class Waf():
 		finally:
 			self._devices.Stop()
 			self._remotes.Stop()
-			logging.info('=== Stop ===')
+			logging.info(f'=== Stop {VersionString} ===')
 
 
 def InitLogging():
@@ -121,7 +121,7 @@ def InitLogging():
 		print(f'Using log file: {path} sice we cannot access the right place.')
 
 	logging.basicConfig(filename=path, format='%(asctime)s.%(msecs)03d %(message)s', datefmt='%Y/%m/%d %H:%M:%S', level=args.logLevel)
-	logging.info('=== Start ===')
+	logging.info(f'=== Start {VersionString} ===')
 
 def main():
 	parser = argparse.ArgumentParser(prog='waf', description='A daemon to control devices like tv,amp,vdr')
