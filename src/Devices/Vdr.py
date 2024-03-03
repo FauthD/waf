@@ -30,6 +30,8 @@ class Vdr(Device):
 	'VDR running on another machine'
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
+		self._SvdrPsend_Dict = self.dev_config.get('SvdrPsend', None)
+		self.RunSvdrPsend('TurnOff')
 
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
@@ -61,6 +63,20 @@ class Vdr(Device):
 		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
 
+	def RunSvdrPsend(self, DictName):
+		if self._SvdrPsend_Dict:
+			cmds = self._SvdrPsend_Dict.get(DictName, None)
+			if cmds:
+				for cmd in cmds:
+					if ',' in cmd:
+						command,delay = cmd.split(',')
+					else:
+						command = cmd
+						delay = '0.1'
+					if len(command):
+						self._SvdrPsend(command)
+					time.sleep(float(delay))
+
 	def ServerOn_IR(self):
 		logging.debug(f'{self.getName()} On_IR')
 		self.SendIR('POWER_ON')
@@ -74,30 +90,37 @@ class Vdr(Device):
 	def TurnOn(self):
 		super().TurnOn()
 		self.WakeOnLan()
+		self.ServerOn_IR()
 		self.WaitForHost()
 		self.SvdrPsend('PING')
 		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
-		##self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
-		self._SvdrPsend('plug softhddevice ATTA')
+		self.RunSvdrPsend('On')
+
+		# my old hardcoded stuff (some were not used since quite some time)
+		# self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
+		# self._SvdrPsend('plug softhddevice ATTA')
 		# time.sleep(0.5)
 		# self._SvdrPsend('plug pulsecontrol scpr 0 off')
 		# time.sleep(2)
 		# self._SvdrPsend('plug pulsecontrol scpr 0 output:hdmi-stereo-extra1')
 
+	# FIXME: review this code:
 	def TurnOff(self):
 		super().TurnOff()
 		#if self._On:
 		if self.IsRunning():
+			self.RunSvdrPsend('Off')
+
 			# turn off the play (if running)
-			self.SvdrPsend('HITK STOP')
+			# self.SvdrPsend('HITK STOP')
 			# detach frontend
 			#self.SvdrPsend('plug softhddevice DETA')
 			# Stop VDR
-			time.sleep(0.2)
+			# time.sleep(0.2)
 			# remote control off
 			#self.SvdrPsend('REMO off')
-			self.SvdrPsend('HITK power')
+			# self.SvdrPsend('HITK power')
 		#else:
 			#self.ServerOff_IR()
 		self._On = False
