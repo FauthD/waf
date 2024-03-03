@@ -180,9 +180,12 @@ class Device(threading.Thread):
 
 ###########################################
 	def SendIR(self, cmd, repeat=1):
-		Key = self.ir.get(cmd, 'unknown')
-		for i in range(repeat):
-			self._SendIR(Key)
+		Key = self.ir.get(cmd, None)
+		if Key:
+			for i in range(repeat):
+				self._SendIR(Key)
+		else:
+			logging.debug(f'  {self.getName()}: unknown IR code: {cmd}')
 
 	def TurnOn(self):
 		logging.debug(f' {self.getName()} On')

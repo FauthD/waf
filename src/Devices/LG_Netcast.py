@@ -54,7 +54,7 @@ class LG_Netcast(Device):
 	def TurnOff(self):
 		super().TurnOff()
 		self.NetCastCmd(LG_COMMAND.POWER)
-		self.SendIR('LG_POWEROFF')
+		self.SendIR('POWER_OFF')
 		self._On = False
 
 	def LG_Hdmi(self, Key):
