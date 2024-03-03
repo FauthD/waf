@@ -18,27 +18,22 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import pexpect
 import time
 import logging
+
 from . import Device
-from Helpers import States,Modifier,Timeout,Watchclock
+from Helpers import Timeout
 
 ###########################################
-class Vdr(Device):
-	'VDR running on another machine'
+class VdrLocal(Device):
+	'VDR on local machine'
+
 	def __init__(self, dev_config:dict, count, send):
-		super().__init__(dev_config, count, send)
+		super().__init__(dev_config, count, send, maxtime=2)
 
 	def RepeatStart(self):
-		logging.debug(f'{self.getName()} RepeatStart')
-		self.WakeOnLan()
-		self.ServerOn_IR()
-
-	def TurnOffRemote(self):
-		if self._On:
-			self._SvdrPsend('REMO off')
+		pass
 
 	def SvdrPsend(self, cmd):
 		to = Timeout(40)
@@ -61,46 +56,17 @@ class Vdr(Device):
 		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
 
-	def ServerOn_IR(self):
-		logging.debug(f'{self.getName()} On_IR')
-		self.SendIR('POWER_ON')
-		# should turn on the vdr mainboard via CIR
-
-	def ServerOff_IR(self):
-		logging.debug(f'{self.getName()} Off_IR')
-		self.SendIR('POWER_OFF')
-		# Must be configured in VDR!
-
 	def TurnOn(self):
-		super().TurnOn()
-		self.WakeOnLan()
-		self.WaitForHost()
+		logging.debug('StartLocalVdr')
+		pexpect.run('vdr_start.sh')
 		self.SvdrPsend('PING')
-		time.sleep(0.5)
+		#time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
 		##self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
 		self._SvdrPsend('plug softhddevice ATTA')
-		# time.sleep(0.5)
-		# self._SvdrPsend('plug pulsecontrol scpr 0 off')
-		# time.sleep(2)
-		# self._SvdrPsend('plug pulsecontrol scpr 0 output:hdmi-stereo-extra1')
 
 	def TurnOff(self):
-		super().TurnOff()
-		#if self._On:
-		if self.IsRunning():
-			# turn off the play (if running)
-			self.SvdrPsend('HITK STOP')
-			# detach frontend
-			#self.SvdrPsend('plug softhddevice DETA')
-			# Stop VDR
-			time.sleep(0.2)
-			# remote control off
-			#self.SvdrPsend('REMO off')
-			self.SvdrPsend('HITK power')
-		#else:
-			#self.ServerOff_IR()
-		self._On = False
+		pass
 
 	def WatchTV(self):
 		self.TurnOn()
@@ -108,15 +74,5 @@ class Vdr(Device):
 	def WatchTvMovie(self):
 		self.TurnOn()
 
-	def WatchBrMovie(self):
-		self.TurnOff()
-
 	def ListenMusic(self):
 		self.TurnOff()
-
-	def ListenRadio(self):
-		self.TurnOff()
-
-	def ListenIRadio(self):
-		self.TurnOff()
-
