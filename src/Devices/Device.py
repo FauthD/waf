@@ -19,7 +19,6 @@
 #
 
 
-import pexpect
 import time
 import logging
 import threading
@@ -123,12 +122,6 @@ class Device(threading.Thread):
 			logging.critical(f'Failed pinging {self.getName()}: {ex}')
 			return False
 		return host.is_alive
-
-	def Remote(self, host, cmd):
-		command = f"ssh {host} '{cmd}'"
-		logging.debug(f'{command}')
-		(command_output, exitstatus) = pexpect.run(command, withexitstatus=True)
-		return exitstatus
 
 	def SetState(self, state):
 		self._start_time.Reset()

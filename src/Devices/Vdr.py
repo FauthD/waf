@@ -39,22 +39,6 @@ class Vdr(Device):
 		if self._On:
 			self._SvdrPsend('REMO off')
 
-	# retrun True on success
-	def SvdrPsend_ssh(self, cmd):
-		#logging.debug('{} SvdrPsend {}'.format(self.getName(), cmd))
-		to = Timeout(40)
-		exitstatus = 1
-		while exitstatus!=0:
-			#run_time = watchclock.Watchclock()
-			exitstatus = self.Remote('cmd@vdr', 'svdrpsend' + cmd)
-			#logging.debug('Svdrpsend delay {0:.1f} secs'.format(run_time.getTime()))
-			if exitstatus!=0:
-				if to.isExpired():
-					logging.debug(f'{self.getName()} abort {cmd}')
-					return False
-				time.sleep(0.5)
-		return exitstatus==0
-
 	def SvdrPsend(self, cmd):
 		to = Timeout(40)
 		exitstatus = 1

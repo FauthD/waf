@@ -18,7 +18,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import pexpect
 import time
 import logging
 import eiscp
@@ -94,11 +93,6 @@ class Onkyo(Device):
 	def OnkyoOff_Eth(self):
 		logging.debug('OnkyoOff_Eth')
 		self.OnkyoRaw('PWR00')
-
-	def OnkyoDiscover(self):
-		(command_output, exitstatus) = pexpect.run('onkyo --discover', withexitstatus=True)
-		if exitstatus != 0 :
-			print(f'OnkyoDiscover failed {exitstatus}')
 
 	def DoRecover(self, to):
 		RetVal = True
