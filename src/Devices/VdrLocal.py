@@ -31,9 +31,24 @@ class VdrLocal(Device):
 
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send, maxtime=2)
+		self._SvdrPsend_Dict = self.dev_config.get('SvdrPsend', None)
 
 	def RepeatStart(self):
 		pass
+
+	def RunSvdrPsend(self, DictName):
+		if self._SvdrPsend_Dict:
+			cmds = self._SvdrPsend_Dict.get(DictName, None)
+			if cmds:
+				for cmd in cmds:
+					if type(cmd) is list:
+						command,delay = cmd
+					else:
+						command = cmd
+						delay = '0.1'
+					if len(command):
+						self._SvdrPsend(command)
+					time.sleep(float(delay))
 
 	def SvdrPsend(self, cmd):
 		to = Timeout(40)
@@ -63,10 +78,11 @@ class VdrLocal(Device):
 		#time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
 		##self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
-		self._SvdrPsend('plug softhddevice ATTA')
+		self.RunSvdrPsend('OnTurnOn')
 
 	def TurnOff(self):
-		pass
+		if self.IsRunning():
+			self.RunSvdrPsend('OnTurnOff')
 
 	def WatchTV(self):
 		self.TurnOn()

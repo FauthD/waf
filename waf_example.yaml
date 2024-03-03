@@ -11,6 +11,12 @@ devices:
     IR:
       POWER_ON: mceusb KEY_POWER
       POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
+    SvdrPsend:
+      OnTurnOn: 
+        - 'plug softhddevice ATTA'
+      OnTurnOff: 
+        - ['HITK STOP', '0.5']
+        - 'HITK power'
 
   nas:
     mac: '00:00:00:00:00:00'

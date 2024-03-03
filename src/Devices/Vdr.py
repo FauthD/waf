@@ -31,7 +31,6 @@ class Vdr(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
 		self._SvdrPsend_Dict = self.dev_config.get('SvdrPsend', None)
-		self.RunSvdrPsend('TurnOff')
 
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
@@ -68,8 +67,8 @@ class Vdr(Device):
 			cmds = self._SvdrPsend_Dict.get(DictName, None)
 			if cmds:
 				for cmd in cmds:
-					if ',' in cmd:
-						command,delay = cmd.split(',')
+					if type(cmd) is list:
+						command,delay = cmd
 					else:
 						command = cmd
 						delay = '0.1'
@@ -95,7 +94,7 @@ class Vdr(Device):
 		self.SvdrPsend('PING')
 		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
-		self.RunSvdrPsend('On')
+		self.RunSvdrPsend('OnTurnOn')
 
 		# my old hardcoded stuff (some were not used since quite some time)
 		# self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
@@ -110,7 +109,7 @@ class Vdr(Device):
 		super().TurnOff()
 		#if self._On:
 		if self.IsRunning():
-			self.RunSvdrPsend('Off')
+			self.RunSvdrPsend('OnTurnOff')
 
 			# turn off the play (if running)
 			# self.SvdrPsend('HITK STOP')
