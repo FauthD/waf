@@ -48,6 +48,7 @@ class Waf():
 		pathlist = []
 		pathlist.append(os.path.join(args.config))
 		pathlist.append(name)
+		logging.debug(f'PWD {os.getcwd()}')
 		for path in pathlist:
 			logging.debug(f'Try config file {path}')
 			if os.path.isfile(path):
@@ -58,6 +59,7 @@ class Waf():
 							logging.debug(f'Using config file {path}')
 							break
 				except:
+					logging.debug(f'Config file {path} is not valid')
 					continue
 		if self.config is None or self.config is {}:
 			logging.debug(f'No config file {name} found')
