@@ -243,15 +243,16 @@ class IrmpHidRaw():
 
 	###############################################
 	def SendIrReport(self, data):
-		report = bytearray(REPORT_SIZE)
+		report = bytearray(IRSEND_PAYLOAD_OFFSET+len(data))
 		report[0] = REPORT_ID_CONFIG_OUT
 		report[1] = STAT_CMD
 		report[2] = ACC_SET
 		report[3] = CMD_EMIT
-		i = IRSEND_PAYLOAD_OFFSET
-		for d in data:
-			report[i] = int(d,16)
-			i += 1
+
+		# IRMP needs byte swap for address and command
+		index = [0,2,1,4,3,5]
+		for i in range(len(data)):
+			report[IRSEND_PAYLOAD_OFFSET+index[i]] = int(data[i],16)
 
 		self.write(report)
 
