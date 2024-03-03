@@ -20,7 +20,7 @@
 
 import time
 import logging
-from pylgnetcast import LgNetCastClient, LG_COMMAND, LG_QUERY
+from pylgnetcast import LgNetCastClient, LG_COMMAND, LG_QUERY, LgNetCastError, AccessTokenError, SessionIdError
 
 from . import Device
 from Helpers import States,Modifier,Timeout,Watchclock
@@ -34,10 +34,8 @@ class LG_Netcast(Device):
 		self._externspeaker=False
 		self.muted=False
 		self.volume=DEFAULT_VOLUME
+		self.access_token = self.dev_config.get('KEY', '')
 		#logging.debug('LG __init__')
-
-	def GetTV(self):
-		return self.getName(), self.dev_config.get('KEY', '')
 
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
@@ -56,7 +54,7 @@ class LG_Netcast(Device):
 	def TurnOff(self):
 		super().TurnOff()
 		self.NetCastCmd(LG_COMMAND.POWER)
-#		self.Send('POWEROFF')
+		self.SendIR('LG_POWEROFF')
 		self._On = False
 
 	def LG_Hdmi(self, Key):
@@ -76,13 +74,13 @@ class LG_Netcast(Device):
 			data = None
 			while not data:
 				try:
-					with LgNetCastClient(self.GetTV()) as client:
+					with LgNetCastClient(self.getName(), self.access_token) as client:
 						data = client.query_data(cmd)
-				except:
-					logging.debug(' LG Query exception')
+				except LgNetCastError as lg:
+					logging.debug(f' LG Query exception {lg}')
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG Query abort')
+						logging.debug(f' LG Query abort {cmd}')
 						return None
 			return data
 		return None
@@ -94,14 +92,20 @@ class LG_Netcast(Device):
 			loop = True
 			while loop:
 				try:
-					with LgNetCastClient(self.GetTV()) as client:
+					with LgNetCastClient(self.getName(), self.access_token) as client:
 						client.send_command(cmd)
 					loop = False
-				except:
-					logging.debug(' LG Cmd exception')
+				except LgNetCastError as lg:
+					logging.debug(f' LG NetCastCmd exception {lg}')
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG Cmd abort')
+						logging.debug(f' LG NetCastCmd abort {cmd}')
+						loop = False
+				except ConnectionError as ce:
+					logging.debug(f' LG NetCastCmd exception {ce}')
+					time.sleep(2)
+					if to.isExpired():
+						logging.debug(f' LG NetCastCmd abort {cmd}')
 						loop = False
 
 	def IsMute_old(self):
@@ -123,14 +127,20 @@ class LG_Netcast(Device):
 			loop = True
 			while loop:
 				try:
-					with LgNetCastClient(self.GetTV()) as client:
+					with LgNetCastClient(self.getName(), self.access_token) as client:
 						self.volume, self.muted = client.get_volume()
 					loop = False
-				except:
-					logging.debug(' LG Cmd exception')
+				except LgNetCastError as lg:
+					logging.debug(f' LG Query exception {lg}')
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG Cmd abort')
+						logging.debug(' LG IsMute abort')
+						loop = False
+				except ConnectionError as ce:
+					logging.debug(f' LG IsMute exception {ce}')
+					time.sleep(2)
+					if to.isExpired():
+						logging.debug(' LG IsMute abort')
 						loop = False
 		#logging.debug('IsMute2')
 		logging.debug(f' LG Volume {self.volume}, mute {self.muted}')
@@ -144,17 +154,24 @@ class LG_Netcast(Device):
 			loop = True
 			while loop:
 				try:
-					with LgNetCastClient(self.GetTV()) as client:
+					with LgNetCastClient(self.getName(), self.access_token) as client:
 						client.set_volume(volume)
 					loop = False
 					self.volume = volume
 					self.muted = False
-				except:
-					logging.debug(' LG Cmd exception')
+				except LgNetCastError as lg:
+					logging.debug(f' LG SetVolume exception {lg}')
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG Cmd abort')
+						logging.debug(' LG SetVolume abort')
 						loop = False
+				except ConnectionError as ce:
+					logging.debug(f' LG SetVolume exception {ce}')
+					time.sleep(2)
+					if to.isExpired():
+						logging.debug(' LG SetVolume abort')
+						loop = False
+
 		#logging.debug('SetVolume2')
 		#logging.debug('LG Volume {0}, mute {1}'.format(self.volume, self.muted))
 
@@ -185,9 +202,8 @@ class LG_Netcast(Device):
 
 	def ToggleGlobalMute(self):
 		super().ToggleGlobalMute()
-		if self._On:
-			if not self._externspeaker:
-				self.ToggleMute()
+		if self._On and not self._externspeaker:
+			self.ToggleMute()
 
 	def UseSpeaker(self):
 		if self._On:
