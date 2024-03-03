@@ -28,7 +28,7 @@ from Helpers import WafException,Counter
 from .Dispatcher import Dispatcher
 
 from .Vdr import Vdr
-from .VdrOnboard import VdrOnboard
+from .VdrLocal import VdrLocal
 from .Nas import Nas
 from .LG_Netcast import LG_Netcast
 from .Onkyo import Onkyo
