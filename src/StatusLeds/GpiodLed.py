@@ -17,23 +17,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import gpiod
 from . StatusLed import StatusLed
 
-class BananaPiLed(StatusLed):
-	'BananaPi Gpio handler'
+class GpiodLed(StatusLed):
+	'Gpio handler'
 	def __init__(self, status_led:dict):
 		super().__init__(status_led)
 		self._Status = False
-		self.chip = gpiod.chip(status_led['GreenLedChip'])
-		self.line = self.chip.get_line(status_led['GreenLed'])
-		config = gpiod.line_request()
-		config.consumer = status_led['Consumer']
-		if(input):
-			config.request_type = gpiod.line_request.DIRECTION_INPUT
-		else:
+		chip = status_led.get('chip', None)
+		if not chip:
+			logging.error(f'StatusLed failed since chip is not valid')
+		line = status_led.get('line', None)
+		if not line:
+			logging.error(f'StatusLed failed since line is not valid')
+
+		if chip and line:
+			self.chip = gpiod.chip(chip)
+			self.line = self.chip.get_line(line)
+			config = gpiod.line_request()
+			config.consumer = status_led.get('consumer', 'waf')
 			config.request_type = gpiod.line_request.DIRECTION_OUTPUT
-		self.line.request(config)
+			self.line.request(config)
 
 	def __del__(self):
 		self.line.release()

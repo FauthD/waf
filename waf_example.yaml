@@ -130,21 +130,31 @@ remotes:
     class: DummyRemote
 
 status_led:
-  #class: DummyLed
+  delay: 0.065
 
-# class: BananaPiLed
-# GreenLed: 226    # BananaPro Pin7
-# GreenLedChip: "gpiochip0"
-# Consumer: "Waf"
+# A dummy in case you do not need any LED:
+# class: DummyLed
 
-#    class: raspberrypi_led
-#    GreenLed: 4    # Raspberry
-  # class: IrmpLed
+# LED connected to a GPIO:
+# class: GpiodLed
+# chip: "gpiochip0" # BananaPro
+# line: 226         # BananaPro Pin7
+# chip: "gpiochip0" # Raspberry PI
+# line: 4           # Raspberry PI Pin 7
+
+# A LED connected to the status LED port of IRMP
+# class: IrmpLed
+# device: /dev/irmp_stm32
+
+# A NeoPixel strip with 8 leds on IRMP
   class: IrmpNeopixel
   device: /dev/irmp_stm32
+  # RGB colors for NeoPixel sweep
+  # Define as much as you have device
+  # The number is the number of busy devices
   colors:
-    1: 30, 20, 90
+    1: 30,20, 90
     2: 0,30,40
     3: 60,80,0
     4: 100,40,0
-    5: 0x80,0,0
+    5: 128,0,0

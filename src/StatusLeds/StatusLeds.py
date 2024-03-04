@@ -23,7 +23,7 @@ import logging
 import threading
 from Helpers import States,Modifier,Timeout,Watchclock,WafException
 
-from .BananaPiLed import BananaPiLed
+from .GpiodLed import GpiodLed
 from .DummyLed import DummyLed
 from .IrmpLed import IrmpLed
 from .IrmpNeopixel import IrmpNeopixel
