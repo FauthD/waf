@@ -54,7 +54,7 @@ class Vdr(Device):
 		return exitstatus==0
 
 	def _SvdrPsend(self, cmd):
-		logging.debug(f'SvdrPsend {cmd}')
+		logging.debug(f'  SvdrPsend {cmd}')
 		#run_time = watchclock.Watchclock()
 		exitstatus = 1
 		command = f"svdrpsend -d {self._devicename} '{cmd}'"
