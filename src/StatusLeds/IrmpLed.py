@@ -32,7 +32,7 @@ class IrmpLed(StatusLed):
 			self.irmp = Irmp.IrmpHidRaw(self.device)
 			self.irmp.open()
 		except IOError as ex:
-			logging.error("You probably don't have the IRMP device. {ex}")
+			logging.error(f"You probably don't have the IRMP device. {ex}")
 
 	def __del__(self):
 		self.irmp.Set(0)
