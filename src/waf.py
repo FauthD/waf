@@ -58,11 +58,21 @@ class Waf():
 						if self.config is not None or len(self.config):
 							logging.debug(f'Using config file {path}')
 							break
+				except IOError as ex:
+					logging.error(f'Error reading file {ex}')
+					break
+				except yaml.YAMLError as ye:
+					if hasattr(ye, 'problem_mark'):
+						mark = ye.problem_mark
+						logging.error(f'YAML Error close to position: line {mark.line+1} : column {mark.column+1}')
+					else:
+						logging.error(f'Unknown YAML Error in {path}')
+					break
 				except:
 					logging.debug(f'Config file {path} is not valid')
-					continue
+					break
 		if self.config is None or self.config is {}:
-			logging.debug(f'No config file {name} found')
+			logging.debug(f'No valid config file {name} found')
 
 ###########################################
 	def Init(self):
