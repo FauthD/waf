@@ -67,24 +67,6 @@ class LG_Netcast(Device):
 			return True
 		return super().IsRunning
 
-	def NetCastQuery(self, cmd):
-		if self.IsRunning():
-			logging.debug(f'LG Query {cmd}')
-			to = Timeout(30)
-			data = None
-			while not data:
-				try:
-					with LgNetCastClient(self.getName(), self.access_token) as client:
-						data = client.query_data(cmd)
-				except LgNetCastError as lg:
-					logging.debug(f' LG Query exception {lg}')
-					time.sleep(2)
-					if to.isExpired():
-						logging.debug(f' LG Query abort {cmd}')
-						return None
-			return data
-		return None
-
 	def NetCastCmd(self, cmd):
 		if self.IsRunning():
 			logging.debug(f' LG Cmd {cmd}')
@@ -102,21 +84,11 @@ class LG_Netcast(Device):
 						logging.debug(f' LG NetCastCmd abort {cmd}')
 						loop = False
 				except ConnectionError as ce:
-					logging.debug(f' LG NetCastCmd exception {ce}')
+					logging.debug(f' LG ConnectionError exception {ce}')
 					time.sleep(2)
 					if to.isExpired():
 						logging.debug(f' LG NetCastCmd abort {cmd}')
 						loop = False
-
-	def IsMute_old(self):
-		#logging.debug('IsMute1')
-		muted = False
-		data = self.NetCastQuery(LG_QUERY.VOLUME_INFO)
-		if data:
-			volume_info = data[0]
-			muted = volume_info.find('mute').text == 'true'
-		#logging.debug('IsMute2')
-		return muted
 
 	def IsMute(self):
 		#logging.debug('IsMute1')
@@ -131,13 +103,13 @@ class LG_Netcast(Device):
 						self.volume, self.muted = client.get_volume()
 					loop = False
 				except LgNetCastError as lg:
-					logging.debug(f' LG Query exception {lg}')
+					logging.debug(f' LG IsMute exception {lg}')
 					time.sleep(2)
 					if to.isExpired():
 						logging.debug(' LG IsMute abort')
 						loop = False
 				except ConnectionError as ce:
-					logging.debug(f' LG IsMute exception {ce}')
+					logging.debug(f' LG IsMute ConnectionError exception {ce}')
 					time.sleep(2)
 					if to.isExpired():
 						logging.debug(' LG IsMute abort')
