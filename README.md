@@ -1,4 +1,4 @@
-# WAF
+# WAF Daemon
 
 A python daemon to control devices like tv, amp, players, etc based on activities
 
@@ -40,7 +40,6 @@ I am in the phase of restructuring an older version (hardcodes configs) that I h
   - A NeoPixel RGB stripe (8 leds) connected to an IRMP device (with NeoPixel support)
     - Back and forth sweep in different colors
 - Control devices with IR or via Network if the device supports that
-- 
 
 ## Supported devices
 
@@ -48,7 +47,8 @@ I am in the phase of restructuring an older version (hardcodes configs) that I h
 - Onkio Surround amplifier
 - NAS (wake it up)
 - Panasonic Blueray player
-- Vdr
+- Vdr running on another machine
+- Vdr running on local machine
 
 The above devices can be configured in the yaml file.
 For other devices a short python class must be created that handles the activities.
@@ -56,10 +56,11 @@ Let me know if you need help. Pull requests are welcome.
 
 ## Reqirements
 
-- Python 3.10 (older not tested)
+- Python 3.10 (other not tested)
 - Python modules see requirements.txt
-- User must be member of groups: syslog, dialout and plugdev
+- User must be member of groups: syslog, gpio, dialout and plugdev
   - syslog is required to access the logfile (/var/log/waf.log)
+  - gpio is only required to access true GPIO bases status led (not needed for IRMP)
   - dialout and plugdev to access devices
 - Lirc, IRMP devices (you can choose)
 - For NeoPixel support you need a RP2040 based IRMP with my firmware.
