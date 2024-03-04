@@ -1,0 +1,20 @@
+# Created by Dieter Fauth
+#
+15000f043c00 DF_APPS
+15000f044800 DF_LIST
+15000f044300 WAF_POWEROFF
+15000f04c300 WAF_TV
+15000f04e300 WAF_MOVIE
+15000f048300 WAF_DLNA
+15000f040D00 DF_MENU
+15000f04a300 DF_FAV
+15000f042C00 DF_AV
+15000f044d00 DF_SUBTITLE2
+
+# Notes from my lirc URC7980_V1272.conf and mind map:
+# Magic rc_core lirc keys
+# 20    C3      3C   DF_A WAF_TV
+# 21    E3      1C   DF_B WAF_MOVIE
+# 22    83      7C   DF_C WAF_DLNA
+# 23    A3      5C   DF_FAV
+# 24    43      BC   DF_Power
