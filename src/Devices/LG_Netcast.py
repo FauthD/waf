@@ -42,7 +42,7 @@ class LG_Netcast(Device):
 		self.SendIR('POWER_ON')
 
 	def SendIR(self, cmd):
-		logging.debug(f' LG Send {cmd}')
+		logging.debug(f'  LG Send {cmd}')
 		super().SendIR(cmd, 4)
 
 	def TurnOn(self):
@@ -59,7 +59,7 @@ class LG_Netcast(Device):
 
 	def LG_Hdmi(self, Key):
 		number = self.dev_config.get('INPUTS', {}).get(Key, 0)
-		logging.debug(f' {self.getName()} Hdmi{number}')
+		logging.debug(f'  {self.getName()} Hdmi{number}')
 		self.SendIR(f'HDMI{number}')
 
 	def IsRunning(self):
@@ -69,25 +69,22 @@ class LG_Netcast(Device):
 
 	def NetCastCmd(self, cmd):
 		if self.IsRunning():
-			logging.debug(f' LG Cmd {cmd}')
+			logging.debug(f'  LG Cmd {cmd}')
 			to = Timeout(30)
 			loop = True
 			while loop:
 				try:
 					with LgNetCastClient(self.getName(), self.access_token) as client:
 						client.send_command(cmd)
-					loop = False
+					break
 				except LgNetCastError as lg:
-					logging.debug(f' LG NetCastCmd exception {lg}')
-					time.sleep(2)
-					if to.isExpired():
-						logging.debug(f' LG NetCastCmd abort {cmd}')
-						loop = False
+					logging.debug(f'  LG NetCastCmd exception {lg}')
 				except ConnectionError as ce:
-					logging.debug(f' LG ConnectionError exception {ce}')
+					logging.debug(f'  LG ConnectionError exception {ce}')
+				finally:
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(f' LG NetCastCmd abort {cmd}')
+						logging.error(f'  LG NetCastCmd abort {cmd}')
 						loop = False
 
 	def IsMute(self):
@@ -101,21 +98,18 @@ class LG_Netcast(Device):
 				try:
 					with LgNetCastClient(self.getName(), self.access_token) as client:
 						self.volume, self.muted = client.get_volume()
-					loop = False
+					break
 				except LgNetCastError as lg:
-					logging.debug(f' LG IsMute exception {lg}')
-					time.sleep(2)
-					if to.isExpired():
-						logging.debug(' LG IsMute abort')
-						loop = False
+					logging.debug(f'  LG IsMute exception {lg}')
 				except ConnectionError as ce:
-					logging.debug(f' LG IsMute ConnectionError exception {ce}')
+					logging.debug(f'  LG IsMute ConnectionError exception {ce}')
+				finally:
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG IsMute abort')
+						logging.error('  LG IsMute abort')
 						loop = False
 		#logging.debug('IsMute2')
-		logging.debug(f' LG Volume {self.volume}, mute {self.muted}')
+		logging.debug(f'  LG Volume {self.volume}, mute {self.muted}')
 		return self.muted
 
 	def SetVolume(self, volume):
@@ -128,20 +122,17 @@ class LG_Netcast(Device):
 				try:
 					with LgNetCastClient(self.getName(), self.access_token) as client:
 						client.set_volume(volume)
-					loop = False
 					self.volume = volume
 					self.muted = False
+					break
 				except LgNetCastError as lg:
-					logging.debug(f' LG SetVolume exception {lg}')
-					time.sleep(2)
-					if to.isExpired():
-						logging.debug(' LG SetVolume abort')
-						loop = False
+					logging.debug(f'  LG SetVolume exception {lg}')
 				except ConnectionError as ce:
-					logging.debug(f' LG SetVolume exception {ce}')
+					logging.debug(f'  LG SetVolume exception {ce}')
+				finally:
 					time.sleep(2)
 					if to.isExpired():
-						logging.debug(' LG SetVolume abort')
+						logging.error('  LG SetVolume abort')
 						loop = False
 
 		#logging.debug('SetVolume2')
@@ -152,12 +143,12 @@ class LG_Netcast(Device):
 			self.NetCastCmd(LG_COMMAND.MUTE_TOGGLE)
 
 	def LG_Mute(self):
-		logging.debug(f' {self.getName()} Mute')
+		logging.debug(f'  {self.getName()} Mute')
 		if not self.IsMute():
 			self.ToggleMute()
 
 	def LG_UnMute(self):
-		logging.debug(f' {self.getName()} UnMute')
+		logging.debug(f'  {self.getName()} UnMute')
 		if self.IsMute():
 			self.ToggleMute()
 
@@ -168,8 +159,7 @@ class LG_Netcast(Device):
 
 	def GlobalUnMute(self):
 		super().GlobalUnMute()
-		if self._On:
-			if not self._externspeaker:
+		if self._On and not self._externspeaker:
 				self.LG_UnMute()
 
 	def ToggleGlobalMute(self):
@@ -202,11 +192,10 @@ class LG_Netcast(Device):
 		self._externspeaker=True
 
 	def ListenRadio(self):
-		self.TurnOff()
-		self._externspeaker=True
+		self.ListenMusic()
 
 	def ListenIRadio(self):
-		self.TurnOff()
+		self.ListenMusic()
 
 	def WatchChromecast(self):
 		self.TurnOn()
