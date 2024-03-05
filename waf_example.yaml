@@ -64,12 +64,20 @@ devices:
     LG_GAME1_VOLUME: 7
     IR:
       POWER_ON: LG_TV LG_POWERON
+      POWER_OFF: LG_TV LG_POWEROFF
       HDMI: LG_TV LG_HDMI
+      HDMI1: LG_TV LG_HDMI1
+      HDMI2: LG_TV LG_HDMI2
+      HDMI3: LG_TV LG_HDMI3
+      HDMI4: LG_TV LG_HDMI4
       GAME1: LG_TV LG_COMPONENT1
-    HDMIINPUTS:
-      BLUERAY: 1
-      CROMECAST: 3
-      VDR: 4
+    INPUTS:
+      BLUERAY: HDMI1
+      CROMECAST: HDMI3
+      VDR: HDMI4
+      GAME1: GAME1
+      # fixme: rest
+
 
   blueray:
     mac: '00:00:00:00:00:00'

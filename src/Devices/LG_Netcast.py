@@ -57,10 +57,10 @@ class LG_Netcast(Device):
 		self.SendIR('POWER_OFF')
 		self._On = False
 
-	def LG_Hdmi(self, Key):
-		number = self.dev_config.get('HDMIINPUTS', {}).get(Key, 0)
-		logging.debug(f'  {self.getName()} Hdmi{number}')
-		self.SendIR(f'HDMI{number}')
+	def LG_Hdmi(self, key):
+		input_ir = self.dev_config.get('INPUTS', {}).get(key, None)
+		logging.debug(f'  {self.getName()} input: {input_ir}')
+		self.SendIR(f'{input}')
 
 	def IsRunning(self):
 		if self._On == True:
