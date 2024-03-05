@@ -14,7 +14,7 @@ I am in the phase of restructuring an older version (hardcodes configs) that I h
 - Watch TV with surround speakers
 - Listen music via DLNA
 - Watch Youtube with Chromcast
-- Play with WII
+- Play with a game device (e.G.: WII, ...)
 - Listen FM Radio (Onkyo)
 - Listen Internet Radio (Onkyo)
 - Turn off all devices

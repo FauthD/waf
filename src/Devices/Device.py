@@ -171,7 +171,7 @@ class Device(threading.Thread):
 				States.LISTENIRADIO: self.ListenIRadio,
 				States.CHROMECAST: self.WatchChromecast,
 				States.TV2DLNA: self.WatchDlnaOnTV,
-				States.WII: self.PlayGame1,
+				States.GAME1: self.PlayGame1,
 				# Modifiers
 				Modifier.MUTE: self.GlobalMute,
 				Modifier.UNMUTE: self.GlobalUnMute,
