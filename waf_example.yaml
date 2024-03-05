@@ -43,6 +43,10 @@ devices:
       BD: Onkyo_TX-NR509 ONKYO_BD_DVD
       MUTE: Onkyo_TX-NR509 KEY_MUTE
       # FIXME: how to handle vol+,vol- ...SetIrCommand
+    INPUTS:
+      movie: TV_CD
+      blueray: BD_DVD
+      dlna: NET
     Commands:
       OnTurnOn: 
         - 'zone2.power=standby'

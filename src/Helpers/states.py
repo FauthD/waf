@@ -51,7 +51,9 @@ class States(str, Enum, metaclass=MyMeta):
 	LISTENIRADIO9='iradio9'
 	CHROMECAST='chromecast'
 	TV2DLNA='tv2dlna'
-	Game1='game1'
+	GAME1='game1'
+	GAME2='game2'
+	GAME3='game3'
 	# Add new states here
 
 class Modifier(str, Enum, metaclass=MyMeta):

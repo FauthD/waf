@@ -40,19 +40,14 @@ class Onkyo(Device):
 			self.receiver.disconnect()
 
 	def RepeatStart(self):
-		logging.debug('%s Repeaclass Waf():tStart', self.getName())
+		logging.debug(f'{self.getName()} RepeatStart')
 		self.SendIR('POWER_ON')
-		code = self.repeat_ir_codes.get(self._newstate, None)
+		inputs = dev_config.get('INPUTS', {})
+		code = inputs.get(self._newstate, None)
 		if code:
 			self.SendIR(code)
 		if self._turn_on_timer.isExpired():
 			self.SetExternSpeaker()    # tell TV that we are ready to play
-
-	repeat_ir_codes = {
-		States.WATCHTVMOVIE: 'TV_CD',
-		States.WATCHBRMOVIE: 'BD_DVD',
-		States.LISTENMUSICDLNA: 'NET',
-	}
 
 	# Called by RunCommands to process the Commands from yaml
 	def RunCommand(self, command):
