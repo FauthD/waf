@@ -58,7 +58,7 @@ class LG_Netcast(Device):
 		self._On = False
 
 	def LG_Hdmi(self, Key):
-		number = self.dev_config.get('INPUTS', {}).get(Key, 0)
+		number = self.dev_config.get('HDMIINPUTS', {}).get(Key, 0)
 		logging.debug(f'  {self.getName()} Hdmi{number}')
 		self.SendIR(f'HDMI{number}')
 
@@ -206,8 +206,8 @@ class LG_Netcast(Device):
 		self.TurnOn()
 		self.NetCastCmd(LG_COMMAND.AV_MODE)
 
-	def PlayWii(self):
+	def PlayGame1(self):
 		self.TurnOn()
 		#logging.debug('LG_COMPONENT1')
-		self.SendIR('WII')
+		self.SendIR('GAME1')
 		self.UseSpeaker()

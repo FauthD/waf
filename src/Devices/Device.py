@@ -171,7 +171,7 @@ class Device(threading.Thread):
 				States.LISTENIRADIO: self.ListenIRadio,
 				States.CHROMECAST: self.WatchChromecast,
 				States.TV2DLNA: self.WatchDlnaOnTV,
-				States.WII: self.PlayWii,
+				States.WII: self.PlayGame1,
 				# Modifiers
 				Modifier.MUTE: self.GlobalMute,
 				Modifier.UNMUTE: self.GlobalUnMute,
@@ -236,7 +236,7 @@ class Device(threading.Thread):
 	def UseSpeaker(self):
 		pass
 
-	def PlayWii(self):
+	def PlayGame1(self):
 		pass
 
 	def WatchDlnaOnTV(self):

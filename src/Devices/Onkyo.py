@@ -178,15 +178,15 @@ class Onkyo(Device):
 	def WatchBrMovie(self):
 		self.WatchTvMovie()
 
-	def PlayWii(self):
-		logging.debug('Onkyo WII')
+	def PlayGame1(self):
+		logging.debug('Onkyo GAME1')
 		self.TurnOn()
 
 	def OnkyoOff_Eth(self):
 		logging.debug('OnkyoOff_Eth')
 		self.OnkyoRaw('PWR00')
 
-		self.OnkyoVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
+		self.OnkyoVolume(self.dev_config.get('GAME1_VOLUME', DEFAULT_VOLUME))
 		self.SetExternSpeaker()    # tell TV that we are ready to play
 
 	def WatchChromecast(self):
