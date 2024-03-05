@@ -11,7 +11,7 @@ devices:
     IR:
       POWER_ON: mceusb KEY_POWER
       POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
-    SvdrPsend:
+    Commands:
       OnTurnOn: 
         - 'plug softhddevice ATTA'
       OnTurnOff: 
@@ -36,11 +36,18 @@ devices:
     ONKYO_WII_VOLUME: 27
     ONKYO_CROMECAST_VOLUME: 28
     IR:
-      TOGGLE_MUTE: Onkyo_TX-NR509 ONKYO_MUTE
-      DLNA: Onkyo_TX-NR509 ONKYO_NET
+      POWER_ON: Onkyo_TX-NR509 ONKYO_POWERON
+      POWER_OFF: Onkyo_TX-NR509 ONKYO_POWEROFF
+      NET: Onkyo_TX-NR509 ONKYO_NET
       CD: Onkyo_TX-NR509 ONKYO_TV_CD
       BD: Onkyo_TX-NR509 ONKYO_BD_DVD
+      MUTE: Onkyo_TX-NR509 KEY_MUTE
       # FIXME: how to handle vol+,vol- ...SetIrCommand
+    Commands:
+      OnTurnOn: 
+        - 'zone2.power=standby'
+      OnTurnOff: 
+        - 'zone2.power=standby'
 
   tv:
     mac: '00:00:00:00:00:00'

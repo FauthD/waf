@@ -39,6 +39,7 @@ class Device(threading.Thread):
 			logging.error(f'{self.getName()} IR must be a dict')
 
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
+		self._commands_dict = self.dev_config.get('Commands', None)
 		self._timeout = Timeout(maxtime)
 		self._busy_count = count
 		self._stop_ = threading.Event()
@@ -89,6 +90,23 @@ class Device(threading.Thread):
 
 	def RepeatStart(self):
 		self.WakeOnLan()
+
+	def RunCommands(self, dict_name):
+		if self._commands_dict:
+			cmds = self._commands_dict.get(dict_name, None)
+			if cmds:
+				for cmd in cmds:
+					if type(cmd) is list:
+						command,delay = cmd
+					else:
+						command = cmd
+						delay = '0.1'
+					if len(command):
+						self.RunCommand(command)
+					time.sleep(float(delay))
+
+	def RunCommand(self, command):
+		pass
 
 	def WaitForHost(self):
 		logging.debug(f' Wait for {self.getName()}')

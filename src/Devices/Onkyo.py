@@ -31,8 +31,7 @@ class Onkyo(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
 		self.receiver = eiscp.eISCP(self._devicename, self.dev_config.get('PORT', 60128))
-		self._once = False;
-		self._on_timer = Timeout(13)
+		self._turn_on_timer = Timeout(13)
 		self._volume=self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME)
 		self._ipos = 3
 
@@ -41,23 +40,30 @@ class Onkyo(Device):
 			self.receiver.disconnect()
 
 	def RepeatStart(self):
-		logging.debug('%s RepeatStart', self.getName())
+		logging.debug('%s Repeaclass Waf():tStart', self.getName())
 		self.SendIR('POWER_ON')
-		if self._newstate==States.WATCHTVMOVIE:
-			self.SelectTV_IR()
-			if self._on_timer.isExpired():
-				self.SetExternSpeaker()    # tell TV that we are ready to play
-		elif self._newstate==States.WATCHBRMOVIE:
-			self.SelectBR_IR()
-			if self._on_timer.isExpired():
-				self.SetExternSpeaker()    # tell TV that we are ready to play
-		elif self._newstate==States.LISTENMUSICDLNA:
-			self.SelectDlna_IR()
+		code = self.repeat_ir_codes.get(self._newstate, None)
+		if code:
+			self.SendIR(code)
+		if self._turn_on_timer.isExpired():
+			self.SetExternSpeaker()    # tell TV that we are ready to play
 
-	def logTime(self):
-		if not self._once:
-			super().logTime()
-			self._once = True
+	repeat_ir_codes = {
+		States.WATCHTVMOVIE: 'TV_CD',
+		States.WATCHBRMOVIE: 'BD_DVD',
+		States.LISTENMUSICDLNA: 'NET',
+	}
+
+	# Called by RunCommands to process the Commands from yaml
+	def RunCommand(self, command):
+		if self.receiver and self._On:
+			parts = command.split('|')
+			if len(parts) == 1:
+				self.OnkyoCommand(command)
+			elif parts[0].upper() == 'RAW':
+				self.OnkyoRaw(parts[1])
+			else:
+				logging.debug(f'Unknown command: {command}')
 
 	def SendIR(self, cmd):
 		logging.debug(f' Onkyo Send {cmd}')
@@ -65,9 +71,10 @@ class Onkyo(Device):
 
 	def TurnOn(self):
 		super().TurnOn()
+		self._turn_on_timer.Reset()
 		self.SendIR('POWER_ON')
-		self._on_timer.Reset()
 		self._On = self.WaitForHost()
+		self.RunCommands('OnTurnOn')
 
 	NeedPrepare = [
 		States.LISTENMUSICDLNA,
@@ -79,70 +86,51 @@ class Onkyo(Device):
 	def TurnOff(self):
 		super().TurnOff()
 		if self._On:
-			# prepare to watch move on next start for a better user experience
+			# prepare to watch movie on next start for a better user experience
 			if self._oldstate in self.NeedPrepare:
 				self.SelectTV()
 				self._oldstate=States.WATCHTVMOVIE
-
+			self.RunCommands('OnTurnOff')
+			if self.receiver:
+				self.receiver.disconnect()
 		self.SendIR('POWER_OFF')
-		self._once = False
 		self._On = False
-		if self.receiver is not None:
-			self.receiver.disconnect()
 
-	def OnkyoOff_Eth(self):
-		logging.debug('OnkyoOff_Eth')
-		self.OnkyoRaw('PWR00')
-
-	def DoRecover(self, to):
-		RetVal = True
+	def DoRecover(self, to, command):
+		ret = True
 		time.sleep(1)
-		logging.debug('Onkyo exception')
+		logging.debug(f'  Onkyo recover from {command}')
 		self.receiver.disconnect()
 		if to.isExpired():
-			logging.debug('Onkyo abort')
-			RetVal = False
-		return RetVal
+			logging.debug('Onkyo abort {command}')
+			ret = False
+		return ret
 
 	def OnkyoRaw(self, cmd):
-		to = Timeout(20)
-		logging.debug(f' OnkyoRaw {cmd}')
-		loop = True
-		while loop:
-			try:
-				self.receiver.raw(cmd)
-				loop = False
-				self.logTime()
-			except ValueError as verr:
-				logging.debug(f' OnkyoRaw {cmd} failed: {verr}')
-				loop = False
-			except:
-				# If we are too soon after power up, Onkyo is not ready yet and rejects connection
-				# We then need to call the disconnect to get a clean start after some time (~6 secs)
-				loop = self.DoRecover(to)
-				# time.sleep(1)
-				# logging.debug('OnkyoRaw exception')
-				# self.receiver.disconnect()
-				# if to.isExpired():
-				#     logging.debug('OnkyoRaw abort')
-				#     loop = False
+		self.OnkyoCmd(self.receiver.raw, cmd)
 
-	def OnkyoCommand(self, command, arguments=None):
+	def OnkyoCommand(self, cmd):
+		self.OnkyoCmd(self.receiver.command, cmd)
+
+	def OnkyoCmd(self, funktion, cmd):
 		to = Timeout(20)
-		logging.debug(f' OnkyoCommand {command} {arguments}')
+		logging.debug(f' {funktion} {cmd}')
+		log_once = False
 		loop = True
 		while loop:
 			try:
-				self.receiver.command(command, arguments, zone='main')
+				funktion(cmd)
 				loop = False
-				self.logTime()
-			except ValueError as verr:
-				logging.debug(f' OnkyoCommand {command} {arguments} failed: {verr}')
+				if not log_once:
+					super().logTime()
+					log_once = True
+			except ValueError as valerr:
+				logging.debug(f' {funktion} {cmd} failed: {valerr}')
 				loop = False
-			except:
+			except Exception:
 				# If we are too soon after power up, Onkyo is not ready yet and rejects connection
 				# We then need to call the disconnect to get a clean start after some time (~6 secs)
-				loop = self.DoRecover(to)
+				loop = self.DoRecover(to, cmd)
 
 	def GlobalMute(self):
 		super().GlobalMute()
@@ -169,27 +157,15 @@ class Onkyo(Device):
 		self.OnkyoVolume(self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME))
 		self.OnkyoRaw('SLI27')
 
-	def SelectDlna_IR(self):
-		logging.debug(f'{self.getName()} SelectDlna_IR')
-		self.SendIR('NET')
-
 	def SelectTV(self):
 		logging.debug(f'{self.getName()} SelectTV')
 		self.OnkyoRaw('SLI23')
 		self.OnkyoVolume(self.dev_config.get('TV_VOLUME', DEFAULT_VOLUME))
 
-	def SelectTV_IR(self):
-		logging.debug(f'{self.getName()} SelectTV_IR')
-		self.SendIR('TV_CD')
-
 	def SelectBR(self):
 		logging.debug(f'{self.getName()} SelectBR')
 		self.OnkyoRaw('SLI10')
 		self.OnkyoVolume(self.dev_config.get('BR_VOLUME', DEFAULT_VOLUME))
-
-	def SelectBR_IR(self):
-		logging.debug(f'{self.getName()} SelectBR_IR')
-		self.SendIR('BD_DVD')
 
 	def WatchTV(self):
 		self.TurnOff()
@@ -200,13 +176,16 @@ class Onkyo(Device):
 		self.SetExternSpeaker()    # tell TV that we are ready to play
 
 	def WatchBrMovie(self):
-		self.TurnOn()
-		self.SelectBR()
-		self.SetExternSpeaker()    # tell TV that we are ready to play
+		self.WatchTvMovie()
 
 	def PlayWii(self):
 		logging.debug('Onkyo WII')
 		self.TurnOn()
+
+	def OnkyoOff_Eth(self):
+		logging.debug('OnkyoOff_Eth')
+		self.OnkyoRaw('PWR00')
+
 		self.OnkyoVolume(self.dev_config.get('WII_VOLUME', DEFAULT_VOLUME))
 		self.SetExternSpeaker()    # tell TV that we are ready to play
 
@@ -234,8 +213,6 @@ class Onkyo(Device):
 	def ListenIRadio(self):
 		self.TurnOn()
 		self.OnkyoRaw('SLI2B')
-		#self.OnkyoCommand('source', 'internet-radio')
-		#self.OnkyoCommand('source=internet-radio')
 		self.OnkyoVolume(self.dev_config.get('IRADIO_VOLUME', DEFAULT_VOLUME))
 		self._ipos = self._StateParam
 		self.SelectIRadio()
@@ -244,6 +221,7 @@ class Onkyo(Device):
 	def SelectIRadio(self):
 		self.OnkyoRaw(f'NPR{self._ipos:02d}')
 
+# Experimental below
 	Translate = [
 		States.LISTENRADIO,
 		States.LISTENIRADIO,

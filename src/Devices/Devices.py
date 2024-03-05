@@ -51,7 +51,7 @@ class DevicesManager(Dispatcher):
 		self._mute_receivers = []
 
 	def ConnectMute(self, device, instance):
-		if device.get('SEND_MUTE', False):
+		if device.get('SEND_MUTE', False) and instance:
 			instance.ConnectExternSpeaker(self.ReceiveMute)
 
 		if device.get('RECEIVE_MUTE', False):
@@ -59,7 +59,7 @@ class DevicesManager(Dispatcher):
 
 	def ReceiveMute(self):
 		for instance in self._mute_receivers:
-			if instance is not None:
+			if instance:
 				instance.ReceiveMute()
 
 ###########################################

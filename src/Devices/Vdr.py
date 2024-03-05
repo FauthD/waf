@@ -30,7 +30,6 @@ class Vdr(Device):
 	'VDR running on another machine'
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
-		self._SvdrPsend_Dict = self.dev_config.get('SvdrPsend', None)
 
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
@@ -62,19 +61,9 @@ class Vdr(Device):
 		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
 
-	def RunSvdrPsend(self, DictName):
-		if self._SvdrPsend_Dict:
-			cmds = self._SvdrPsend_Dict.get(DictName, None)
-			if cmds:
-				for cmd in cmds:
-					if type(cmd) is list:
-						command,delay = cmd
-					else:
-						command = cmd
-						delay = '0.1'
-					if len(command):
-						self._SvdrPsend(command)
-					time.sleep(float(delay))
+	# Called by RunCommands to process the Commands from yaml
+	def RunCommand(self, command):
+		self._SvdrPsend(command)
 
 	def ServerOn_IR(self):
 		logging.debug(f'{self.getName()} On_IR')
@@ -94,7 +83,7 @@ class Vdr(Device):
 		self.SvdrPsend('PING')
 		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
-		self.RunSvdrPsend('OnTurnOn')
+		self.RunCommands('OnTurnOn')
 
 		# my old hardcoded stuff (some were not used since quite some time)
 		# self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
@@ -109,7 +98,7 @@ class Vdr(Device):
 		super().TurnOff()
 		#if self._On:
 		if self.IsRunning():
-			self.RunSvdrPsend('OnTurnOff')
+			self.RunCommands('OnTurnOff')
 
 			# turn off the play (if running)
 			# self.SvdrPsend('HITK STOP')
