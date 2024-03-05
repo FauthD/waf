@@ -68,7 +68,7 @@ class LG_Netcast(Device):
 		return super().IsRunning
 
 	def NetCastCmd(self, cmd):
-		if self.IsRunning():
+		if self.IsRunning() and self._On:
 			logging.debug(f'  LG Cmd {cmd}')
 			to = Timeout(30)
 			loop = True
@@ -90,7 +90,7 @@ class LG_Netcast(Device):
 	def IsMute(self):
 		#logging.debug('IsMute1')
 		self.muted = False
-		if self.IsRunning():
+		if self.IsRunning() and self._On:
 			#logging.debug('LG Cmd {0}'.format(cmd))
 			to = Timeout(30)
 			loop = True
@@ -114,7 +114,7 @@ class LG_Netcast(Device):
 
 	def SetVolume(self, volume):
 		#logging.debug('SetVolume1')
-		if self.IsRunning():
+		if self.IsRunning() and self._On:
 			#logging.debug('LG Cmd {0}'.format(cmd))
 			to = Timeout(30)
 			loop = True
