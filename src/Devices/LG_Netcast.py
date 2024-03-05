@@ -57,7 +57,7 @@ class LG_Netcast(Device):
 		self.SendIR('POWER_OFF')
 		self._On = False
 
-	def LG_Hdmi(self, key):
+	def SelectInput(self, key):
 		input_ir = self.dev_config.get('INPUTS', {}).get(key, None)
 		logging.debug(f'  {self.getName()} input: {input_ir}')
 		self.SendIR(f'{input}')
@@ -174,18 +174,18 @@ class LG_Netcast(Device):
 
 	def WatchTV(self):
 		self.TurnOn()
-		self.LG_Hdmi('VDR')
+		self.SelectInput('VDR')
 		self.LG_UnMute()
 		self.SetVolume(self.dev_config.get('TV_VOLUME', DEFAULT_VOLUME))
 		self._externspeaker=False
 
 	def WatchTvMovie(self):
 		self.TurnOn()
-		self.LG_Hdmi('VDR')
+		self.SelectInput('VDR')
 
 	def WatchBrMovie(self):
 		self.TurnOn()
-		self.LG_Hdmi('BLUERAY')
+		self.SelectInput('BLUERAY')
 
 	def ListenMusic(self):
 		self.TurnOff()
@@ -199,7 +199,7 @@ class LG_Netcast(Device):
 
 	def WatchChromecast(self):
 		self.TurnOn()
-		self.LG_Hdmi('CROMECAST')
+		self.SelectInput('CROMECAST')
 		self.UseSpeaker()
 
 	def WatchDlnaOnTV(self):
@@ -208,6 +208,6 @@ class LG_Netcast(Device):
 
 	def PlayGame1(self):
 		self.TurnOn()
-		#logging.debug('LG_COMPONENT1')
-		self.SendIR('GAME1')
+		#logging.debug('GAME1')
+		self.SelectInput('GAME1')
 		self.UseSpeaker()
