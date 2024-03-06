@@ -27,6 +27,7 @@ devices:
     mac: '00:00:00:00:00:00'
     name: "TX-NR509"
     class: 'Onkyo'
+    SEND_MUTE: true
     ONKYO_PORT: 60128
     ONKYO_TV_VOLUME: 45
     ONKYO_BR_VOLUME: 28
@@ -58,6 +59,7 @@ devices:
     name: "TV-42LM670S-ZA"
     class: 'LG_Netcast'
     LGKEY: "123456"
+    RECEIVE_MUTE: True
     LG_DEFAULT_VOLUME: 14
     LG_TV_VOLUME: LG_DEFAULT_VOLUME
     LG_TV_CROMECAST: LG_DEFAULT_VOLUME
