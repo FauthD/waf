@@ -42,8 +42,8 @@ class Onkyo(Device):
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
 		self.SendIR('POWER_ON')
-		inputs = dev_config.get('INPUTS', {})
-		code = inputs.get(self._newstate, None)
+		inputs_ir = self.dev_config.get('INPUTS', {})
+		code = inputs_ir.get(self._newstate, None)
 		if code:
 			self.SendIR(code)
 		if self._turn_on_timer.isExpired():
@@ -93,11 +93,11 @@ class Onkyo(Device):
 
 	def DoRecover(self, to, command):
 		ret = True
-		time.sleep(1)
 		logging.debug(f'  Onkyo recover from {command}')
+		time.sleep(3)
 		self.receiver.disconnect()
 		if to.isExpired():
-			logging.debug('Onkyo abort {command}')
+			logging.debug(f'Onkyo abort {command}')
 			ret = False
 		return ret
 
@@ -209,7 +209,7 @@ class Onkyo(Device):
 		self.TurnOn()
 		self.OnkyoRaw('SLI2B')
 		self.OnkyoVolume(self.dev_config.get('IRADIO_VOLUME', DEFAULT_VOLUME))
-		self._ipos = self._StateParam
+		self._ipos = 1 # self._StateParam # FIXME: param not yet? available
 		self.SelectIRadio()
 		logging.debug(f'{self.getName()} ListenIRadio done')
 
