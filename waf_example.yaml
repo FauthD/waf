@@ -27,20 +27,21 @@ devices:
     mac: '00:00:00:00:00:00'
     name: "TX-NR509"
     class: 'Onkyo'
-    ONKYO_PORT: 60128
-    ONKYO_TV_VOLUME: 45
-    ONKYO_BR_VOLUME: 28
-    ONKYO_DLNA_VOLUME: 21
-    ONKYO_FMRADIO_VOLUME: 28
-    ONKYO_IRADIO_VOLUME: 20
-    ONKYO_GAME1_VOLUME: 27
-    ONKYO_CROMECAST_VOLUME: 28
+    PORT: 60128
+    SEND_MUTE: True
+    TV_VOLUME: 45
+    BR_VOLUME: 28
+    DLNA_VOLUME: 21
+    FMRADIO_VOLUME: 28
+    IRADIO_VOLUME: 20
+    GAME1_VOLUME: 27
+    CROMECAST_VOLUME: 28
     IR:
       POWER_ON: Onkyo_TX-NR509 ONKYO_POWERON
       POWER_OFF: Onkyo_TX-NR509 ONKYO_POWEROFF
       NET: Onkyo_TX-NR509 ONKYO_NET
-      CD: Onkyo_TX-NR509 ONKYO_TV_CD
-      BD: Onkyo_TX-NR509 ONKYO_BD_DVD
+      TV_CD: Onkyo_TX-NR509 ONKYO_TV_CD
+      BD_DVD: Onkyo_TX-NR509 ONKYO_BD_DVD
       MUTE: Onkyo_TX-NR509 KEY_MUTE
       # FIXME: how to handle vol+,vol- ...SetIrCommand
     INPUTS:
@@ -57,11 +58,12 @@ devices:
     mac: '00:00:00:00:00:00'
     name: "TV-42LM670S-ZA"
     class: 'LG_Netcast'
-    LGKEY: "123456"
-    LG_DEFAULT_VOLUME: 14
-    LG_TV_VOLUME: LG_DEFAULT_VOLUME
-    LG_TV_CROMECAST: LG_DEFAULT_VOLUME
-    LG_GAME1_VOLUME: 7
+    KEY: "123456"
+    RECEIVE_MUTE: True
+    TV_VOLUME: 14
+    TV_CROMECAST: 14
+    GAME1_VOLUME: 7
+
     IR:
       POWER_ON: LG_TV LG_POWERON
       POWER_OFF: LG_TV LG_POWEROFF
@@ -99,6 +101,7 @@ dispatch:
     "OneForAll_URC7980_V0146 KEY_POWER": alloff
     DF_POWER2: alloff
     WAF_POWEROFF: alloff
+    WAF_POWER_OFF: alloff
     DF_FAV: iradio
     DF_VOL+: vol+
     DF_VOL-: vol-
