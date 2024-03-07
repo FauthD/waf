@@ -89,7 +89,7 @@ class LG_Netcast(Device):
 					time.sleep(2)
 					if to.isExpired():
 						logging.error(f'  LG NetCastCmd abort {cmd}')
-						loop =input
+						loop = False
 
 	def IsMute(self):
 		#logging.debug('IsMute1')
@@ -160,7 +160,7 @@ class LG_Netcast(Device):
 		if self.IsMute():
 			self.ToggleMute()
 
-	def GlobalMute(self):
+	def GlobalMute(self):input
 		super().GlobalMute()
 		if self._On:
 			self.LG_Mute()
