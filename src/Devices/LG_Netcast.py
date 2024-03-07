@@ -25,6 +25,7 @@ from pylgnetcast import LgNetCastClient, LG_COMMAND, LG_QUERY, LgNetCastError, A
 from . import Device
 from Helpers import States,Modifier,Timeout,Watchclock
 
+ConnectionTimeout=60
 DEFAULT_VOLUME=14
 
 class LG_Netcast(Device):
@@ -49,18 +50,19 @@ class LG_Netcast(Device):
 		super().TurnOn()
 		self.SendIR('POWER_ON')
 		self._On = self.WaitForHost()
+		time.sleep(1)
 		self.IsMute()
 		
 	def TurnOff(self):
 		super().TurnOff()
-		self.NetCastCmd(LG_COMMAND.POWER)
+		#self.NetCastCmd(LG_COMMAND.POWER) # IR is much faster
 		self.SendIR('POWER_OFF')
 		self._On = False
 
 	def SelectInput(self, key):
 		input_ir = self.dev_config.get('INPUTS', {}).get(key, None)
 		logging.debug(f'  {self.getName()} input: {input_ir}')
-		self.SendIR(f'{input}')
+		self.SendIR(f'{input_ir}')
 
 	def IsRunning(self):
 		if self._On == True:
@@ -70,7 +72,7 @@ class LG_Netcast(Device):
 	def NetCastCmd(self, cmd):
 		if self.IsRunning() and self._On:
 			logging.debug(f'  LG Cmd {cmd}')
-			to = Timeout(30)
+			to = Timeout(ConnectionTimeout)
 			loop = True
 			while loop:
 				try:
@@ -81,18 +83,20 @@ class LG_Netcast(Device):
 					logging.debug(f'  LG NetCastCmd exception {lg}')
 				except ConnectionError as ce:
 					logging.debug(f'  LG ConnectionError exception {ce}')
+				except Exception as ex:
+					logging.debug(f'  LG NetCastCmd Exception {ex}')
 				finally:
 					time.sleep(2)
 					if to.isExpired():
 						logging.error(f'  LG NetCastCmd abort {cmd}')
-						loop = False
+						loop =input
 
 	def IsMute(self):
 		#logging.debug('IsMute1')
 		self.muted = False
 		if self.IsRunning() and self._On:
 			#logging.debug('LG Cmd {0}'.format(cmd))
-			to = Timeout(30)
+			to = Timeout(ConnectionTimeout)
 			loop = True
 			while loop:
 				try:
@@ -103,6 +107,8 @@ class LG_Netcast(Device):
 					logging.debug(f'  LG IsMute exception {lg}')
 				except ConnectionError as ce:
 					logging.debug(f'  LG IsMute ConnectionError exception {ce}')
+				except Exception as ex:
+					logging.debug(f'  LG IsMute Exception {ex}')
 				finally:
 					time.sleep(2)
 					if to.isExpired():
@@ -116,7 +122,7 @@ class LG_Netcast(Device):
 		#logging.debug('SetVolume1')
 		if self.IsRunning() and self._On:
 			#logging.debug('LG Cmd {0}'.format(cmd))
-			to = Timeout(30)
+			to = Timeout(ConnectionTimeout)
 			loop = True
 			while loop:
 				try:
@@ -129,6 +135,8 @@ class LG_Netcast(Device):
 					logging.debug(f'  LG SetVolume exception {lg}')
 				except ConnectionError as ce:
 					logging.debug(f'  LG SetVolume exception {ce}')
+				except Exception as ex:
+					logging.debug(f'  LG SetVolume Exception {ex}')
 				finally:
 					time.sleep(2)
 					if to.isExpired():
