@@ -160,7 +160,7 @@ class LG_Netcast(Device):
 		if self.IsMute():
 			self.ToggleMute()
 
-	def GlobalMute(self):input
+	def GlobalMute(self):
 		super().GlobalMute()
 		if self._On:
 			self.LG_Mute()
