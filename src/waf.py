@@ -53,7 +53,7 @@ class Waf():
 			logging.debug(f'Try config file {path}')
 			if os.path.isfile(path):
 				try:
-					with open(name, 'r') as file:
+					with open(path, 'r') as file:
 						self.config = yaml.safe_load(file)
 						if self.config is not None or len(self.config):
 							logging.debug(f'Using config file {path}')
