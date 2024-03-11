@@ -22,8 +22,7 @@
 import time
 import logging
 import threading
-import asyncio
-from icmplib import ping,async_ping
+from icmplib import ping
 from wakeonlan import send_magic_packet
 
 from Helpers import States,Modifier,Timeout,Watchclock
@@ -109,45 +108,15 @@ class Device(threading.Thread):
 	def RunCommand(self, command):
 		pass
 
-	async def asyncWaitForHost(self):
-		logging.debug(f' Wait for {self.getName()}')
-		self._timeout.Reset()
-		count = 0
-		ret = False
-		time.sleep(5)
-		try:
-			while not self._timeout.isExpired() and not self._stop_.is_set():
-				logging.debug(f'ping({self._devicename}, count=1, interval=1, timeout=0.5, privileged=False)')
-				host = await async_ping(self._devicename, count=1, interval=1, timeout=0.5, privileged=False)
-				if host.is_alive:
-					ret = True
-					break
-				time.sleep(0.5)
-				count += 1 # do not send the repeat too often
-				if count%4==0:
-					self.RepeatStart()
-		except Exception as ex:
-			logging.critical(f'Failed pinging {self.getName()}: {ex}')
-
-		ret &= not self._timeout.isExpired()
-		if ret:
-			logging.debug(f'Found {self.getName()} after {self.getTime():.1f} secs')
-		else:
-			logging.debug(f'Failed pinging {self.getName()} after {self.getTime():.1f} secs')
-		return ret
-
-	def Hunt_WaitForHost(self):
-		time.sleep(10)
-		return asyncio.run(self.asyncWaitForHost())
-
 	def WaitForHost(self):
 		logging.debug(f' Wait for {self.getName()}')
 		self._timeout.Reset()
+		exitstatus = 1
 		count = 0
 		ret = False
 		try:
 			while not self._timeout.isExpired() and not self._stop_.is_set():
-				host = ping(self._devicename, count=1, interval=1, timeout=2, privileged=False)
+				host = ping(self._devicename, count=1, interval=1, timeout=0.5, privileged=False)
 				if host.is_alive:
 					ret = True
 					break
