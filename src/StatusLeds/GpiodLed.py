@@ -19,8 +19,10 @@
 
 import logging
 import gpiod
+from gpiod.line import Direction, Value
 from . StatusLed import StatusLed
 
+InvalidMsg = 'GpiodLed is invalid'
 class GpiodLed(StatusLed):
 	'Gpio handler'
 	def __init__(self, status_led:dict):
@@ -28,44 +30,49 @@ class GpiodLed(StatusLed):
 		self._Status = False
 		chip = status_led.get('chip', None)
 		if not chip:
-			logging.error(f'StatusLed failed since chip is not valid')
-		line = status_led.get('line', None)
-		if not line:
-			logging.error(f'StatusLed failed since line is not valid')
+			logging.error(f'StatusLed failed since chip {chip} is not valid')
+		self.line = status_led.get('line', None)
+		if not self.line:
+			logging.error(f'StatusLed failed since line {self.line} is not valid')
 
-		if chip and line:
-			self.chip = gpiod.chip(chip)
-			self.line = self.chip.get_line(line)
-			config = gpiod.line_request()
-			config.consumer = status_led.get('consumer', 'waf')
-			config.request_type = gpiod.line_request.DIRECTION_OUTPUT
-			self.line.request(config)
+		if chip and self.line:
+			self.request=gpiod.request_lines(
+				chip, consumer="waf",
+				config={
+					self.line: gpiod.LineSettings(
+						direction=Direction.OUTPUT, output_value=Value.ACTIVE
+					)
+				}
+			)
+		else:
+			logging.error('GpiodLed failed')
 
-	def __del__(self):
-		self.line.release()
+	# def __del__(self):
+	# 	if self.line:
+	# 		self.line.release()
+	# 	else:
+	# 		logging.error(InvalidMsg)
 
 	def Off(self):
 		self._Status = False
-		self.line.set_value(self._Status)
+		if self.line:
+			self.set_value(self._Status)
+		else:
+			logging.error(InvalidMsg)
 
 	def On(self):
 		self._Status = True
-		self.line.set_value(self._Status)
+		if self.line:
+			self.set_value(self._Status)
+		else:
+			logging.error(InvalidMsg)
 
 	def Toggle(self):
 		self._Status ^= True
-		self.line.set_value(self._Status)
+		if self.line:
+			self.set_value(self._Status)
+		else:
+			logging.error(InvalidMsg)
 
-# set_direction_input
-# is_requested
-# is_used
-# release
-
-# ACTIVE_HIGH = 2
-# ACTIVE_LOW = 1
-# BIAS_AS_IS = 1
-# BIAS_DISABLE = 2
-# BIAS_PULL_DOWN = 4
-# BIAS_PULL_UP = 3
-# DIRECTION_INPUT = 1
-# DIRECTION_OUTPUT = 2
+	def set_value(self, val):
+		self.request.set_value(self.line, Value.ACTIVE if val else Value.INACTIVE)
