@@ -49,7 +49,8 @@ class LG_Netcast(Device):
 		super().TurnOn()
 		self.SendIR('POWER_ON')
 		self._On = self.WaitForHost()
-		self.IsMute()
+		if self._On:
+			self.IsMute()
 		
 	def TurnOff(self):
 		super().TurnOff()
@@ -58,9 +59,9 @@ class LG_Netcast(Device):
 		self._On = False
 
 	def SelectInput(self, key):
-		input_ir = self.dev_config.get('INPUTS', {}).get(key, None)
+		input_ir = self.dev_config.get('INPUTS', {}).get(key, '')
 		logging.debug(f'  {self.getName()} input: {input_ir}')
-		self.SendIR(f'{input}')
+		self.SendIR(f'{input_ir}')
 
 	def IsRunning(self):
 		if self._On == True:
