@@ -125,6 +125,7 @@ class Device(threading.Thread):
 					self.RepeatStart()
 		except Exception as ex:
 			logging.critical(f'Failed pinging {self.getName()}: {ex}')
+			ret = False
 
 		ret &= not self._timeout.isExpired()
 		if ret:

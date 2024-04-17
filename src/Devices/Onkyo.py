@@ -69,7 +69,8 @@ class Onkyo(Device):
 		self._turn_on_timer.Reset()
 		self.SendIR('POWER_ON')
 		self._On = self.WaitForHost()
-		self.RunCommands('OnTurnOn')
+		if self._On:
+			self.RunCommands('OnTurnOn')
 
 	NeedPrepare = [
 		States.LISTENMUSICDLNA,
@@ -107,20 +108,20 @@ class Onkyo(Device):
 	def OnkyoCommand(self, cmd):
 		self.OnkyoCmd(self.receiver.command, cmd)
 
-	def OnkyoCmd(self, funktion, cmd):
+	def OnkyoCmd(self, function, cmd):
 		to = Timeout(20)
-		logging.debug(f' {funktion} {cmd}')
+		logging.debug(f' {function.__name__} {cmd}')
 		log_once = False
-		loop = True
+		loop = self._On
 		while loop:
 			try:
-				funktion(cmd)
+				function(cmd)
 				loop = False
 				if not log_once:
 					super().logTime()
 					log_once = True
 			except ValueError as valerr:
-				logging.debug(f' {funktion} {cmd} failed: {valerr}')
+				logging.debug(f' {function.__name__} {cmd} failed: {valerr}')
 				loop = False
 			except Exception:
 				# If we are too soon after power up, Onkyo is not ready yet and rejects connection
