@@ -83,7 +83,8 @@ class Vdr(Device):
 		self.SvdrPsend('PING')
 		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
-		self.RunCommands('OnTurnOn')
+		if self._On:
+			self.RunCommands('OnTurnOn')
 
 		# my old hardcoded stuff (some were not used since quite some time)
 		# self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
