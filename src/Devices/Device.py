@@ -36,7 +36,7 @@ class Device(threading.Thread):
 		super().__init__(name=self._devicename)
 		self.ir = dev_config.get('IR', {})
 		if not isinstance(self.ir, dict):
-			logging.error(f'{self.getName()} IR must be a dict')
+			logging.error(f'{self.name} IR must be a dict')
 
 		self._macaddress = dev_config.get('mac', '00:00:00:00:00:00')
 		self._commands_dict = self.dev_config.get('Commands', None)
@@ -72,7 +72,7 @@ class Device(threading.Thread):
 		return self._start_time.getTime()
 
 	def logTime(self):
-		logging.debug(f' Log {self.getName()} after {self.getTime():.1f} secs')
+		logging.debug(f' Logtime {self.name} after {self.getTime():.1f} secs')
 
 	def ConnectExternSpeaker(self, callback):
 		self._mute_call = callback
@@ -109,9 +109,8 @@ class Device(threading.Thread):
 		pass
 
 	def WaitForHost(self):
-		logging.debug(f' Wait for {self.getName()}')
+		logging.debug(f' Wait for {self.name}')
 		self._timeout.Reset()
-		exitstatus = 1
 		count = 0
 		ret = False
 		try:
@@ -124,27 +123,27 @@ class Device(threading.Thread):
 				if count%4==0:
 					self.RepeatStart()
 		except Exception as ex:
-			logging.critical(f'Failed pinging {self.getName()}: {ex}')
+			logging.critical(f'Failed pinging {self.name}: {ex}')
 			ret = False
 
 		ret &= not self._timeout.isExpired()
 		if ret:
-			logging.debug(f'Found {self.getName()} after {self.getTime():.1f} secs')
+			logging.debug(f'Found {self.name} after {self.getTime():.1f} secs')
 		else:
-			logging.debug(f'Failed pinging {self.getName()} after {self.getTime():.1f} secs')
+			logging.debug(f'Failed pinging {self.name} after {self.getTime():.1f} secs')
 		return ret
 
 	def IsRunning(self):
 		try:
 			host = ping(self._devicename, count=1, interval=1, timeout=1, privileged=False)
 		except Exception as ex:
-			logging.critical(f'Failed pinging {self.getName()}: {ex}')
+			logging.critical(f'Failed pinging {self.name}: {ex}')
 			return False
 		return host.is_alive
 
 	def SetState(self, state):
 		self._start_time.Reset()
-		logging.debug(f'SetState {self.getName()}: {state}')
+		logging.debug(f'SetState {self.name}: {state}')
 		self._available.wait()
 		self._available.clear()
 		# do not update oldstate for modifiere keys (e.g. mute)
@@ -154,7 +153,7 @@ class Device(threading.Thread):
 		with self._work:
 			self._work.notify()
 		if not self.is_alive():
-			logging.debug(f'SetState {self.getName()} failed! Thread is dead.')
+			logging.debug(f'SetState {self.name} failed! Thread is dead.')
 
 	# runs as a thread
 	def run(self):
@@ -180,16 +179,16 @@ class Device(threading.Thread):
 				Modifier.USESPEAKER: self.UseSpeaker,
 			}
 			if self._newstate in jmp:
-				logging.debug(f' work {self.getName()}: {self._newstate}')
+				logging.debug(f' work {self.name}: {self._newstate}')
 				jmp[self._newstate]()
-				logging.debug(f' Done {self.getName()} after {self.getTime():.1f} secs')
+				logging.debug(f' Done {self.name} after {self.getTime():.1f} secs')
 				self._busy_count.Decrement()
 
 			self._available.set()
 			with self._work:
 				self._work.wait()
 
-		logging.debug(f'thread {self.getName()} ended')
+		logging.debug(f'thread {self.name} ended')
 
 	def SetIrCommand(self, code):
 		pass
@@ -199,18 +198,18 @@ class Device(threading.Thread):
 
 ###########################################
 	def SendIR(self, cmd, repeat=1):
-		Key = self.ir.get(cmd, None)
-		if Key:
-			for i in range(repeat):
-				self._SendIR(Key)
+		key = self.ir.get(cmd, None)
+		if key:
+			for _ in range(repeat):
+				self._SendIR(key)
 		else:
-			logging.debug(f'  {self.getName()}: unknown IR code: {cmd}')
+			logging.debug(f'  {self.name}: unknown IR code: {cmd}')
 
 	def TurnOn(self):
-		logging.debug(f' {self.getName()} On')
+		logging.debug(f' {self.name} On')
 
 	def TurnOff(self):
-		logging.debug(f' {self.getName()} Off')
+		logging.debug(f' {self.name} Off')
 
 	def WatchTV(self):
 		# time.sleep(30)
