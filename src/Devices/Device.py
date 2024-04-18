@@ -106,6 +106,7 @@ class Device(threading.Thread):
 					time.sleep(float(delay))
 
 	def RunCommand(self, command):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def WaitForHost(self):
@@ -191,6 +192,7 @@ class Device(threading.Thread):
 		logging.debug(f'thread {self.name} ended')
 
 	def SetIrCommand(self, code):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def ResetBusy(self):
@@ -198,6 +200,7 @@ class Device(threading.Thread):
 
 ###########################################
 	def SendIR(self, cmd, repeat=1):
+		''' Overwrite this in a derived class if needed '''
 		key = self.ir.get(cmd, None)
 		if key:
 			for _ in range(repeat):
@@ -206,40 +209,52 @@ class Device(threading.Thread):
 			logging.debug(f'  {self.name}: unknown IR code: {cmd}')
 
 	def TurnOn(self):
+		''' Overwrite this in a derived class if needed '''
 		logging.debug(f' {self.name} On')
 
 	def TurnOff(self):
+		''' Overwrite this in a derived class if needed '''
 		logging.debug(f' {self.name} Off')
 
 	def WatchTV(self):
+		''' Overwrite this in a derived class if needed '''
 		# time.sleep(30)
 		pass
 
 	def WatchTvMovie(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def ListenMusic(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def ListenRadio(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def ListenIRadio(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def WatchBrMovie(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def WatchChromecast(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def UseSpeaker(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def PlayGame1(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def WatchDlnaOnTV(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def GlobalMute(self):
