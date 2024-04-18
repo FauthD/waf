@@ -33,7 +33,7 @@ from Remotes import RemotesManager
 from Devices import DevicesManager
 from Helpers import timeout,watchclock,WafException
 
-VersionString='V0.1'
+VersionString='V0.2'
 CONFIGNAME='waf.yaml'
 LOGPATH='/var/log/waf.log'
 
