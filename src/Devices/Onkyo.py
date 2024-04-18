@@ -42,7 +42,7 @@ class Onkyo(Device):
 	def RepeatStart(self):
 		logging.debug(f'{self.getName()} RepeatStart')
 		self.SendIR('POWER_ON')
-		inputs = dev_config.get('INPUTS', {})
+		inputs = self.dev_config.get('INPUTS', {})
 		code = inputs.get(self._newstate, None)
 		if code:
 			self.SendIR(code)
@@ -60,7 +60,7 @@ class Onkyo(Device):
 			else:
 				logging.debug(f'Unknown command: {command}')
 
-	def SendIR(self, cmd):
+	def SendIR(self, cmd, repeat=1):
 		logging.debug(f' Onkyo Send {cmd}')
 		super().SendIR(cmd, 4)
 
@@ -94,7 +94,7 @@ class Onkyo(Device):
 
 	def DoRecover(self, to, command):
 		ret = True
-		time.sleep(1)
+		time.sleep(2)
 		logging.debug(f'  Onkyo recover from {command}')
 		self.receiver.disconnect()
 		if to.isExpired():
@@ -123,9 +123,10 @@ class Onkyo(Device):
 			except ValueError as valerr:
 				logging.debug(f' {function.__name__} {cmd} failed: {valerr}')
 				loop = False
-			except Exception:
+			except Exception as e:
 				# If we are too soon after power up, Onkyo is not ready yet and rejects connection
 				# We then need to call the disconnect to get a clean start after some time (~6 secs)
+				logging.debug(f' {function.__name__} {cmd} failed: {e}')
 				loop = self.DoRecover(to, cmd)
 
 	def GlobalMute(self):
