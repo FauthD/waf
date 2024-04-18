@@ -60,6 +60,7 @@ class DevicesManager(Dispatcher):
 	def ReceiveMute(self):
 		for instance in self._mute_receivers:
 			if instance:
+				self._busy_count.Increment()
 				instance.ReceiveMute()
 
 ###########################################
