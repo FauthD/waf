@@ -27,6 +27,8 @@ from Helpers import States,Modifier,Timeout,Watchclock
 
 DEFAULT_VOLUME=14
 
+class NoneException(Exception):
+	pass
 class LG_Netcast(Device):
 	def __init__(self, dev_config:dict, count, send):
 		super().__init__(dev_config, count, send)
@@ -41,20 +43,19 @@ class LG_Netcast(Device):
 		logging.debug(f'{self.getName()} RepeatStart')
 		self.SendIR('POWER_ON')
 
-	def SendIR(self, cmd):
+	def SendIR(self, cmd, repeat=1):
 		logging.debug(f'  LG Send {cmd}')
-		super().SendIR(cmd, 4)
+		super().SendIR(cmd, 5)
 
 	def TurnOn(self):
 		super().TurnOn()
-		self.SendIR('POWER_ON')
+		if not self.IsOn():
+			self.SendIR('POWER_ON')
 		self._On = self.WaitForHost()
-		if self._On:
-			self.IsMute()
+		#self.IsMute()
 		
 	def TurnOff(self):
 		super().TurnOff()
-		self.NetCastCmd(LG_COMMAND.POWER)
 		self.SendIR('POWER_OFF')
 		self._On = False
 
@@ -63,85 +64,63 @@ class LG_Netcast(Device):
 		logging.debug(f'  {self.getName()} input: {input_ir}')
 		self.SendIR(f'{input_ir}')
 
-	def IsRunning(self):
-		if self._On == True:
-			return True
-		return super().IsRunning
+	def IsOn(self) -> bool:
+		return self._On and super().IsRunning()
+
+	def NetCastConnect(self, function, param1):
+		#logging.debug('NetCastConnect')
+		if self.IsOn():
+			to = Timeout(30)
+			loop = True
+			while loop:
+				try:
+					with LgNetCastClient(self.getName(), self.access_token) as client:
+						function(client, param1)
+				except Exception as e:
+					logging.debug(f'  NetCastConnect {e}')
+				else:
+					loop = False
+				finally:
+					if loop:
+						time.sleep(2)
+						logging.debug('  NetCastConnect needs one more retry')
+						if to.isExpired():
+							logging.error('  NetCastConnect abort')
+							loop = False
+
+	def _SendCmd_(self, client, cmd):
+		client.send_command(cmd)
 
 	def NetCastCmd(self, cmd):
-		if self.IsRunning() and self._On:
-			logging.debug(f'  LG Cmd {cmd}')
-			to = Timeout(30)
-			loop = True
-			while loop:
-				try:
-					with LgNetCastClient(self.getName(), self.access_token) as client:
-						client.send_command(cmd)
-					break
-				except LgNetCastError as lg:
-					logging.debug(f'  LG NetCastCmd exception {lg}')
-				except ConnectionError as ce:
-					logging.debug(f'  LG ConnectionError exception {ce}')
-				finally:
-					time.sleep(2)
-					if to.isExpired():
-						logging.error(f'  LG NetCastCmd abort {cmd}')
-						loop = False
+		logging.debug(f'  LG Cmd {cmd}')
+		self.NetCastConnect(self._SendCmd_, cmd)
+
+	def _GetMute_(self, client, dummy):
+		result = client.get_volume()
+		if result is None:
+			raise NoneException('get_volume returned None')
+		self.volume, self.muted = result
 
 	def IsMute(self):
-		#logging.debug('IsMute1')
+		logging.debug('LG IsMute1')
 		self.muted = False
-		if self.IsRunning() and self._On:
-			#logging.debug('LG Cmd {0}'.format(cmd))
-			to = Timeout(30)
-			loop = True
-			while loop:
-				try:
-					with LgNetCastClient(self.getName(), self.access_token) as client:
-						self.volume, self.muted = client.get_volume()
-					break
-				except LgNetCastError as lg:
-					logging.debug(f'  LG IsMute exception {lg}')
-				except ConnectionError as ce:
-					logging.debug(f'  LG IsMute ConnectionError exception {ce}')
-				finally:
-					time.sleep(2)
-					if to.isExpired():
-						logging.error('  LG IsMute abort')
-						loop = False
-		#logging.debug('IsMute2')
-		logging.debug(f'  LG Volume {self.volume}, mute {self.muted}')
+		self.NetCastConnect(self._GetMute_, 0)
+		logging.debug(f'  LG IsMute {self.volume}, mute {self.muted}')
 		return self.muted
 
-	def SetVolume(self, volume):
-		#logging.debug('SetVolume1')
-		if self.IsRunning() and self._On:
-			#logging.debug('LG Cmd {0}'.format(cmd))
-			to = Timeout(30)
-			loop = True
-			while loop:
-				try:
-					with LgNetCastClient(self.getName(), self.access_token) as client:
-						client.set_volume(volume)
-					self.volume = volume
-					self.muted = False
-					break
-				except LgNetCastError as lg:
-					logging.debug(f'  LG SetVolume exception {lg}')
-				except ConnectionError as ce:
-					logging.debug(f'  LG SetVolume exception {ce}')
-				finally:
-					time.sleep(2)
-					if to.isExpired():
-						logging.error('  LG SetVolume abort')
-						loop = False
+	def _SetVolume_(self, client, volume):
+		client.set_volume(volume)
+		self.volume = volume
+		self.muted = False
 
-		#logging.debug('SetVolume2')
-		#logging.debug('LG Volume {0}, mute {1}'.format(self.volume, self.muted))
+	def SetVolume(self, volume):
+		logging.debug('SetVolume1')
+		self.NetCastConnect(self._SetVolume_, volume)
+		logging.debug(f'  LG SetVolume {self.volume}')
 
 	def ToggleMute(self):
-		if self._On:
-			self.NetCastCmd(LG_COMMAND.MUTE_TOGGLE)
+		logging.debug(f'  {self.getName()} ToggleMute')
+		self.NetCastCmd(LG_COMMAND.MUTE_TOGGLE)
 
 	def LG_Mute(self):
 		logging.debug(f'  {self.getName()} Mute')
@@ -155,21 +134,21 @@ class LG_Netcast(Device):
 
 	def GlobalMute(self):
 		super().GlobalMute()
-		if self._On:
+		if self.IsOn():
 			self.LG_Mute()
 
 	def GlobalUnMute(self):
 		super().GlobalUnMute()
-		if self._On and not self._externspeaker:
+		if self.IsOn() and not self._externspeaker:
 				self.LG_UnMute()
 
 	def ToggleGlobalMute(self):
 		super().ToggleGlobalMute()
-		if self._On and not self._externspeaker:
+		if self.IsOn() and not self._externspeaker:
 			self.ToggleMute()
 
 	def UseSpeaker(self):
-		if self._On:
+		if self.IsOn():
 			self.LG_Mute()
 		self._externspeaker=True
 
