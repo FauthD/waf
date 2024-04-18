@@ -121,8 +121,10 @@ class LG_Netcast(Device):
 	def ToggleMute(self):
 		logging.debug(f'  {self.name} ToggleMute')
 		self.NetCastCmd(LG_COMMAND.MUTE_TOGGLE)
- as emptyf):
-		logging.debug(f'  {self.name} Mute')
+
+
+	def LG_Mute(self):
+		logging.debug(f'  {self.getName()} Mute')
 		if not self.IsMute():
 			self.ToggleMute()
 
@@ -168,7 +170,7 @@ class LG_Netcast(Device):
 
 	def ListenMusic(self):
 		self.TurnOff()
-		self._externs as emptypeaker=True
+		self._externspeaker=True
 
 	def ListenRadio(self):
 		self.ListenMusic()
