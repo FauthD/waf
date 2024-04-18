@@ -24,9 +24,9 @@ import queue
 from Helpers import WafException
 
 class Remote():
-	def __init__(self, cfg:dict, RX_Fifo:queue):
+	def __init__(self, cfg:dict, rx_fifo):
 		self.cfg = cfg
-		self.RX_Fifo = RX_Fifo
+		self.rx_fifo = rx_fifo
 		self.tx_enable = cfg.get('tx', True)
 		self.rx_enable = cfg.get('rx', True)
 		self._stop_ = threading.Event()

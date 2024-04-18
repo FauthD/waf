@@ -34,8 +34,8 @@ DEFAULT_LIRC_INET_PORT = 8765
 
 class lirc(Remote):
 	'Send/receive IR codes with lirc'
-	def __init__(self, cfg:dict, RX_Fifo:queue):
-		super().__init__(cfg, RX_Fifo)
+	def __init__(self, cfg:dict, rx_fifo):
+		super().__init__(cfg, rx_fifo)
 		self.socket_addr = cfg.get('host', None)
 		if self.socket_addr is not None:
 			self.socket_type = socket.AF_INET
@@ -45,8 +45,18 @@ class lirc(Remote):
 			self.socket_type = socket.AF_UNIX
 			self.connect = cfg.get('socket', '/run/lirc/lircd')
 
-		self.receiver = LircReceiver(self.socket_type, self.connect, self.RX_Fifo, self.rx_enable, self._stop_)
-		self.transmitter = LircTransmitter(self.socket_type, self.connect, self._stop_)
+		if self.rx_enable:
+			self.receiver = LircReceiver(self.socket_type, self.connect, self.rx_fifo, self._stop_)
+		else:
+			self.receiver = LircDummy()
+		self.StartTX()
+
+	def StartTX(self):
+		if self.tx_enable:
+			self.transmitter = LircTransmitter(self.socket_type, self.connect, self._stop_)
+		else:
+			self.transmitter = LircDummy()
+
 
 	def Stop(self):
 		super().Stop()
@@ -56,18 +66,36 @@ class lirc(Remote):
 		self.receiver.join()
 
 	def Send(self, code):
-		if not self.tx_enable:
-			return
-		self.transmitter.Send(code)
+		if self.transmitter.Send(code):
+			logging.debug(f'Retry {self.connect} {code}')
+			self.StartTX()
+			self.transmitter.Send(code)
+
+##############################################
+class LircDummy():
+	def __init__(self):
+		''' just a dummy '''
+		pass
+
+	def Stop(self):
+		''' just a dummy '''
+		pass
+
+	def join(self):
+		''' just a dummy '''
+		pass
+
+	def Send(self, code):
+		''' just a dummy '''
+		return 0
 
 SOCKET_BUFER=256
 ##############################################
 class LircReceiver(threading.Thread):
-	def __init__(self, socket_type, connect, RX_Fifo, rx_enable, stop):
+	def __init__(self, socket_type, connect, rx_fifo, stop):
 		super().__init__(name='LircReceiver')
 		self._stop_ = stop
-		self.rx_enable = rx_enable
-		self.RX_Fifo = RX_Fifo
+		self.rx_fifo = rx_fifo
 		self.connect = connect
 		self.socket_type = socket_type
 		self.client_socket = socket.socket(self.socket_type, socket.SOCK_STREAM)
@@ -113,16 +141,16 @@ class LircReceiver(threading.Thread):
 
 			text = data.decode('utf-8')
 			message =text.split(sep='\n')
-			if self.rx_enable:
-				self.RX_Fifo.put(message[0])
+			self.rx_fifo.put(message[0])
+
 		# allow the other side of the fifo to exit
-		self.RX_Fifo.put(None)
+		self.rx_fifo.put(None)
 		logging.debug(f'thread {self.name} "{self.connect}" ended')
 
 ##############################################
 class LircTransmitter(LircReceiver):
 	def __init__(self, socket_type, connect, stop):
-		super().__init__(socket_type, connect, None, False, stop)
+		super().__init__(socket_type, connect, None, stop)
 		self.name='LircTransmitter'
 		self._parser = ReplyParser()
 		self._select = selectors.DefaultSelector()
@@ -132,18 +160,20 @@ class LircTransmitter(LircReceiver):
 	# runs as a thread
 	def run(self):
 		self.SocketConnect()
-		#logging.debug(f'thread {self.name} "{self.connect}" finished')
+		logging.debug(f'Connector thread {self.name} "{self.connect}" finished')
 
 	def Send(self, code):
 		if not self.IsConnected():
-			return
+			return 0
 
 		remote, key = code.split()
 		cmd_string = f'SEND_ONCE {remote} {key}\n'
 		try:
+			#logging.debug(f'Sending {cmd_string}')
 			self.client_socket.sendall(cmd_string.encode("ascii"))
 		except Exception as e:
-			logging.error(f"Error sending data to client: {e}")
+			logging.error(f"Error sending data to {self.connect}: {e}")
+			return 1
 
 		try:
 			while not self._parser.is_completed() and not self._stop_.is_set():
@@ -154,13 +184,15 @@ class LircTransmitter(LircReceiver):
 		except Exception as e:
 			logging.error(f"Error communicating with lircd: {e}")
 
+		return 0
 
 ######################################################################
 # Taken from lirc-0.10.1 python-pkg/lirc/client.py and modified slightly
 ######################################################################
 
-	def readline(self, timeout: float = None) -> str:
+	def readline(self, timeout: float =1) -> str:
 		''' Implements readline(). '''
+		start=0
 		if timeout:
 			start = time.perf_counter()
 		while b'\n' not in self._buffer:
@@ -171,7 +203,7 @@ class LircTransmitter(LircReceiver):
 					raise TimeoutException(
 						"readline: no data within %f seconds" % timeout)
 				else:
-					return None
+					return ''
 			self._buffer += self.client_socket.recv(4096)
 		line, self._buffer = self._buffer.split(b'\n', 1)
 		return line.decode('ascii', 'ignore')
