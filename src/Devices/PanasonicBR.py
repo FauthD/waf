@@ -29,16 +29,16 @@ class PanasonicBR(Device):
 		super().__init__(dev_config, count, send)
 
 	def SendTelnet(self, cmd):
-		logging.debug(f'SendTelnet {cmd} to {self.getName()}')
+		logging.debug(f'SendTelnet {cmd} to {self.name}')
 		try:
 			tn = telnetlib.Telnet(host=self._devicename, port=8102, timeout=2)
 			#tn.set_debuglevel(20)
 			tn.write(cmd.encode('ascii') + b"\r\n")
 			response = tn.read_until(b'R', 1)
-			logging.debug(f'Telnet response={response} from {self.getName()}')
+			logging.debug(f'Telnet response={response} from {self.name}')
 			tn.close()
 		except:
-			logging.debug(f'SendTelnet to {self.getName()} failed')
+			logging.debug(f'SendTelnet to {self.name} failed')
 
 
 	def TurnOn(self):

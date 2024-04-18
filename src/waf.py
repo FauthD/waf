@@ -68,10 +68,10 @@ class Waf():
 					else:
 						logging.error(f'Unknown YAML Error in {path}')
 					break
-				except:
-					logging.debug(f'Config file {path} is not valid')
+				except Exception as e:
+					logging.debug(f'Config file {path} is not valid: {e}')
 					break
-		if self.config is None or self.config is {}:
+		if self.config is None or self.config == {}:
 			logging.debug(f'No valid config file {name} found')
 
 ###########################################
@@ -94,7 +94,7 @@ class Waf():
 	def Validate(self):
 		try:
 			if self.config is None:
-				raise WafException(f'No config available')
+				raise WafException('No config available')
 			self._devices.Validate()
 			self._remotes.Validate()
 			ret = True
@@ -111,7 +111,7 @@ class Waf():
 				while self._stopper.run:
 					try:
 						code = self._remotes.GetRemoteCode(timeout)
-					except queue.Empty as empty:
+					except queue.Empty:
 						continue
 					else:
 						if code is not None:
@@ -137,7 +137,7 @@ def InitLogging():
 
 def main():
 	parser = argparse.ArgumentParser(prog='waf', description='A daemon to control devices like tv,amp,vdr')
-	parser.add_argument('-c', '--config', help=f'Path to config file (yaml format). (default: %(default)s)', default='/etc/waf.yaml')
+	parser.add_argument('-c', '--config', help='Path to config file (yaml format). (default: %(default)s)', default='/etc/waf.yaml')
 	parser.add_argument('-v', "--version", action="version", help='Display version and exit', version="%(prog)s 0.0")
 	parser.add_argument("-l", "--logLevel", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level. (default: %(default)s)", default='DEBUG')
 	parser.add_argument("-L", "--logpath", dest="logpath", help="Set the log file. (default: %(default)s)", default=LOGPATH)

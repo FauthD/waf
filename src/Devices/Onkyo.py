@@ -23,7 +23,7 @@ import logging
 import eiscp
 
 from . import Device
-from Helpers import States,Modifier,Timeout,Watchclock
+from Helpers import States,Timeout
 
 DEFAULT_VOLUME=20
 
@@ -40,7 +40,7 @@ class Onkyo(Device):
 			self.receiver.disconnect()
 
 	def RepeatStart(self):
-		logging.debug(f'{self.getName()} RepeatStart')
+		logging.debug(f'{self.name} RepeatStart')
 		self.SendIR('POWER_ON')
 		inputs = self.dev_config.get('INPUTS', {})
 		code = inputs.get(self._newstate, None)
@@ -94,12 +94,13 @@ class Onkyo(Device):
 
 	def DoRecover(self, to, command):
 		ret = True
-		time.sleep(2)
+		time.sleep(1)
 		logging.debug(f'  Onkyo recover from {command}')
 		self.receiver.disconnect()
 		if to.isExpired():
 			logging.debug('Onkyo abort {command}')
 			ret = False
+		time.sleep(1)
 		return ret
 
 	def OnkyoRaw(self, cmd):
@@ -137,7 +138,7 @@ class Onkyo(Device):
 	def GlobalUnMute(self):
 		super().GlobalUnMute()
 		self.OnkyoVolume(self._volume)
-		logging.debug(f' GlobalMute done {self.getName()}')
+		logging.debug(f' GlobalMute done {self.name}')
 
 	def ToggleGlobalMute(self):
 		super().ToggleGlobalMute()
@@ -150,17 +151,17 @@ class Onkyo(Device):
 			self.OnkyoRaw(f'MVL{volume:2X}')
 
 	def SelectDlna(self):
-		logging.debug(f'{self.getName()} SelectDlna')
+		logging.debug(f'{self.name} SelectDlna')
 		self.OnkyoVolume(self.dev_config.get('DLNA_VOLUME', DEFAULT_VOLUME))
 		self.OnkyoRaw('SLI27')
 
 	def SelectTV(self):
-		logging.debug(f'{self.getName()} SelectTV')
+		logging.debug(f'{self.name} SelectTV')
 		self.OnkyoRaw('SLI23')
 		self.OnkyoVolume(self.dev_config.get('TV_VOLUME', DEFAULT_VOLUME))
 
 	def SelectBR(self):
-		logging.debug(f'{self.getName()} SelectBR')
+		logging.debug(f'{self.name} SelectBR')
 		self.OnkyoRaw('SLI10')
 		self.OnkyoVolume(self.dev_config.get('BR_VOLUME', DEFAULT_VOLUME))
 
@@ -188,7 +189,7 @@ class Onkyo(Device):
 
 	def WatchChromecast(self):
 		self.TurnOn()
-		logging.debug(f'{self.getName()} WatchChromecast')
+		logging.debug(f'{self.name} WatchChromecast')
 		self.OnkyoRaw('SLI23')
 		self.OnkyoVolume(self.dev_config.get('CROMECAST_VOLUME', DEFAULT_VOLUME))
 		self.SetExternSpeaker()    # tell TV that we are ready to play
@@ -199,21 +200,21 @@ class Onkyo(Device):
 	def ListenMusic(self):
 		self.TurnOn()
 		self.SelectDlna()
-		logging.debug(f'{self.getName()} ListenMusic done')
+		logging.debug(f'{self.name} ListenMusic done')
 
 	def ListenRadio(self):
 		self.TurnOn()
 		self.OnkyoRaw('SLI24')
 		self.OnkyoVolume(self.dev_config.get('FMRADIO_VOLUME', DEFAULT_VOLUME))
-		logging.debug(f'{self.getName()} ListenRadio done')
+		logging.debug(f'{self.name} ListenRadio done')
 
 	def ListenIRadio(self):
 		self.TurnOn()
 		self.OnkyoRaw('SLI2B')
 		self.OnkyoVolume(self.dev_config.get('IRADIO_VOLUME', DEFAULT_VOLUME))
-		self._ipos = self._StateParam
+		# FIXME later: self._ipos = self._StateParam
 		self.SelectIRadio()
-		logging.debug(f'{self.getName()} ListenIRadio done')
+		logging.debug(f'{self.name} ListenIRadio done')
 
 	def SelectIRadio(self):
 		self.OnkyoRaw(f'NPR{self._ipos:02d}')

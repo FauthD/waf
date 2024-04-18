@@ -32,7 +32,7 @@ class Vdr(Device):
 		super().__init__(dev_config, count, send)
 
 	def RepeatStart(self):
-		logging.debug(f'{self.getName()} RepeatStart')
+		logging.debug(f'{self.name} RepeatStart')
 		self.WakeOnLan()
 		self.ServerOn_IR()
 
@@ -47,7 +47,7 @@ class Vdr(Device):
 			exitstatus = not self._SvdrPsend(cmd)
 			if exitstatus!=0:
 				if to.isExpired():
-					logging.debug(f'{self.getName()} abort {cmd}')
+					logging.debug(f'{self.name} abort {cmd}')
 					return False
 				time.sleep(0.5)
 		return exitstatus==0
@@ -66,12 +66,12 @@ class Vdr(Device):
 		self._SvdrPsend(command)
 
 	def ServerOn_IR(self):
-		logging.debug(f'{self.getName()} On_IR')
+		logging.debug(f'{self.name} On_IR')
 		self.SendIR('POWER_ON')
 		# should turn on the vdr mainboard via CIR
 
 	def ServerOff_IR(self):
-		logging.debug(f'{self.getName()} Off_IR')
+		logging.debug(f'{self.name} Off_IR')
 		self.SendIR('POWER_OFF')
 		# Must be configured in VDR!
 

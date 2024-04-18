@@ -95,13 +95,13 @@ class LircReceiver(threading.Thread):
 				self.client_socket.connect(self.connect)
 				self.connected = True
 			except socket.error as e:
-				logging.error(f'{self.getName()} error connecting to socket "{self.connect}": {e}')
+				logging.error(f'{self.name} error connecting to socket "{self.connect}": {e}')
 				time.sleep(1)
 				continue
 
 
 		if self.connected:
-			logging.info(f"{self.getName()} connected to socket: {self.connect}")
+			logging.info(f"{self.name} connected to socket: {self.connect}")
 
 	# runs as a thread
 	def run(self):
@@ -117,7 +117,7 @@ class LircReceiver(threading.Thread):
 				self.RX_Fifo.put(message[0])
 		# allow the other side of the fifo to exit
 		self.RX_Fifo.put(None)
-		logging.debug(f'thread {self.getName()} "{self.connect}" ended')
+		logging.debug(f'thread {self.name} "{self.connect}" ended')
 
 ##############################################
 class LircTransmitter(LircReceiver):
@@ -132,7 +132,7 @@ class LircTransmitter(LircReceiver):
 	# runs as a thread
 	def run(self):
 		self.SocketConnect()
-		#logging.debug(f'thread {self.getName()} "{self.connect}" finished')
+		#logging.debug(f'thread {self.name} "{self.connect}" finished')
 
 	def Send(self, code):
 		if not self.IsConnected():

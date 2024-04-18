@@ -40,7 +40,7 @@ class LG_Netcast(Device):
 		#logging.debug('LG __init__')
 
 	def RepeatStart(self):
-		logging.debug(f'{self.getName()} RepeatStart')
+		logging.debug(f'{self.name} RepeatStart')
 		self.SendIR('POWER_ON')
 
 	def SendIR(self, cmd, repeat=1):
@@ -61,7 +61,7 @@ class LG_Netcast(Device):
 
 	def SelectInput(self, key):
 		input_ir = self.dev_config.get('INPUTS', {}).get(key, '')
-		logging.debug(f'  {self.getName()} input: {input_ir}')
+		logging.debug(f'  {self.name} input: {input_ir}')
 		self.SendIR(f'{input_ir}')
 
 	def IsOn(self) -> bool:
@@ -74,7 +74,7 @@ class LG_Netcast(Device):
 			loop = True
 			while loop:
 				try:
-					with LgNetCastClient(self.getName(), self.access_token) as client:
+					with LgNetCastClient(self.name, self.access_token) as client:
 						function(client, param1)
 				except Exception as e:
 					logging.debug(f'  NetCastConnect {e}')
@@ -119,16 +119,15 @@ class LG_Netcast(Device):
 		logging.debug(f'  LG SetVolume {self.volume}')
 
 	def ToggleMute(self):
-		logging.debug(f'  {self.getName()} ToggleMute')
+		logging.debug(f'  {self.name} ToggleMute')
 		self.NetCastCmd(LG_COMMAND.MUTE_TOGGLE)
-
-	def LG_Mute(self):
-		logging.debug(f'  {self.getName()} Mute')
+ as emptyf):
+		logging.debug(f'  {self.name} Mute')
 		if not self.IsMute():
 			self.ToggleMute()
 
 	def LG_UnMute(self):
-		logging.debug(f'  {self.getName()} UnMute')
+		logging.debug(f'  {self.name} UnMute')
 		if self.IsMute():
 			self.ToggleMute()
 
@@ -169,7 +168,7 @@ class LG_Netcast(Device):
 
 	def ListenMusic(self):
 		self.TurnOff()
-		self._externspeaker=True
+		self._externs as emptypeaker=True
 
 	def ListenRadio(self):
 		self.ListenMusic()

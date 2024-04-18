@@ -57,7 +57,7 @@ class VdrLocal(Device):
 			exitstatus = not self._SvdrPsend(cmd)
 			if exitstatus!=0:
 				if to.isExpired():
-					logging.debug(f'{self.getName()} abort {cmd}')
+					logging.debug(f'{self.name} abort {cmd}')
 					return False
 				time.sleep(0.5)
 		return exitstatus==0

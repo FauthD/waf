@@ -29,7 +29,7 @@ class Nas(Device):
 		super().__init__(dev_config, count, send)
 
 	def RepeatStart(self):
-		logging.debug(f'{self.getName()} RepeatStart')
+		logging.debug(f'{self.name} RepeatStart')
 		self.WakeOnLan()
 
 	def TurnOn(self):
