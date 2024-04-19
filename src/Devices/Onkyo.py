@@ -61,7 +61,7 @@ class Onkyo(Device):
 				logging.debug(f'Unknown command: {command}')
 
 	def SendIR(self, cmd, repeat=1):
-		logging.debug(f' Onkyo Send {cmd}')
+		logging.debug(f' {self.name} Send {cmd}')
 		super().SendIR(cmd, 4)
 
 	def TurnOn(self):
@@ -95,10 +95,10 @@ class Onkyo(Device):
 	def DoRecover(self, to, command):
 		ret = True
 		time.sleep(1)
-		logging.debug(f'  Onkyo recover from {command}')
+		logging.debug(f'  {self.name} recover from {command}')
 		self.receiver.disconnect()
 		if to.isExpired():
-			logging.debug('Onkyo abort {command}')
+			logging.debug(f'{self.name} abort {command}')
 			ret = False
 		time.sleep(1)
 		return ret
@@ -177,11 +177,11 @@ class Onkyo(Device):
 		self.WatchTvMovie()
 
 	def PlayGame1(self):
-		logging.debug('Onkyo GAME1')
+		logging.debug(f'{self.name} GAME1')
 		self.TurnOn()
 
 	def OnkyoOff_Eth(self):
-		logging.debug('OnkyoOff_Eth')
+		logging.debug(f' {self.name} OnkyoOff_Eth')
 		self.OnkyoRaw('PWR00')
 
 		self.OnkyoVolume(self.dev_config.get('GAME1_VOLUME', DEFAULT_VOLUME))
@@ -235,7 +235,7 @@ class Onkyo(Device):
 
 	def SetIrCommand(self, code):
 		if self._newstate in self.Translate:
-			logging.debug('Onkyo {code}, state={self._newstate}')
+			logging.debug(f'{self.name} {code}, state={self._newstate}')
 			if code in self.IR_Send:
 				send = self.IR_Send[code]
 				logging.debug(f'Send: {send}')
@@ -248,7 +248,7 @@ class Onkyo(Device):
 					self._ipos -=1
 				elif code in self.Num:
 					self._ipos = ord(code[0])-ord('0')
-					#logging.debug('Onkyo {0}, _ipos={1}'.format(code[0], self._ipos))
+					#logging.debug(f'{self.name} {0}, _ipos={1}'.format(code[0], self._ipos))
 
 				if self._ipos>40:
 					self._ipos=1
