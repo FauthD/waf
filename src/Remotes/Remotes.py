@@ -34,8 +34,8 @@ class RemotesManager():
 		super().__init__()
 		# self.config = None
 		self._remotes = []
-		self.RX_Fifo = queue.Queue()
-		self.TX_Fifo = queue.Queue()
+		self.rx_fifo = queue.Queue()
+		self.tx_fifo = queue.Queue()
 
 ###########################################
 	def InstantiateClass(self, cfg:dict):
@@ -43,7 +43,7 @@ class RemotesManager():
 		instance = globals().get(class_name)
 		try:
 			if instance:
-				ret = instance(cfg, self.RX_Fifo)
+				ret = instance(cfg, self.rx_fifo)
 			else:
 				logging.error(f"Class '{class_name}' not found.")
 				ret = None
@@ -94,5 +94,5 @@ class RemotesManager():
 ###########################################
 	# This is a blocking call
 	def GetRemoteCode(self, timeout):
-		return self.RX_Fifo.get(timeout=timeout)
+		return self.rx_fifo.get(timeout=timeout)
 

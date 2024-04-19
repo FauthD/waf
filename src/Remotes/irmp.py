@@ -28,8 +28,8 @@ from . Remote import Remote
 ###########################################
 class irmp(Remote):
 	'Send/receive IR codes with irmp'
-	def __init__(self, cfg:dict, RX_Fifo:queue):
-		super().__init__(cfg, RX_Fifo)
+	def __init__(self, cfg:dict, rx_fifo:queue):
+		super().__init__(cfg, rx_fifo)
 		self.device = cfg.get('device', '/dev/irmp_stm32')
 		self._irmp = Irmp.IrmpHidRaw(self.device)
 		self._irmp.SetIrReceiveCallback(self.IrReceiveHandler)
@@ -56,7 +56,7 @@ class irmp(Remote):
 			name = irmp_fulldata
 
 		if self.rx_enable:
-			self.RX_Fifo.put(f"{irmp_fulldata} {Flag} {name} {remote}")
+			self.rx_fifo.put(f"{irmp_fulldata} {Flag} {name} {remote}")
 
 
 ###########################################

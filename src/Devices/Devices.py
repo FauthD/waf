@@ -43,8 +43,8 @@ class DevicesManager(Dispatcher):
 		super().__init__()
 		self.config = {}
 		self._devices = []
-		self.RX_Fifo = queue.Queue()
-		self.TX_Fifo = queue.Queue()
+		self.rx_fifo = queue.Queue()
+		self.tx_fifo = queue.Queue()
 		self._time = watchclock.Watchclock()
 		self._status_leds = StatusLedsManager()
 		self._busy_count = Counter()
