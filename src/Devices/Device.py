@@ -181,7 +181,8 @@ class Device(threading.Thread):
 				logging.debug(f' work {self.name}: {self._newstate}')
 				jmp[self._newstate]()
 				logging.debug(f' Done {self.name} after {self.getTime():.1f} secs')
-				self._busy_count.Decrement()
+
+			self._busy_count.Decrement()
 
 			self._available.set()
 			with self._work:
