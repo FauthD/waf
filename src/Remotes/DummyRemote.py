@@ -23,7 +23,7 @@ from . Remote import Remote
 
 class DummyRemote(Remote):
 	'A dummy (noop) IR transceiver'
-	def __init__(self, cfg:dict, rx_fifo:queue):
+	def __init__(self, cfg:dict, rx_fifo:queue.Queue):
 		super().__init__(cfg, rx_fifo)
 
 	# def __del__(self):

@@ -24,7 +24,7 @@ import queue
 from Helpers import WafException
 
 class Remote():
-	def __init__(self, cfg:dict, rx_fifo):
+	def __init__(self, cfg:dict, rx_fifo:queue.Queue):
 		self.cfg = cfg
 		self.rx_fifo = rx_fifo
 		self.tx_enable = cfg.get('tx', True)
@@ -32,14 +32,18 @@ class Remote():
 		self._stop_ = threading.Event()
 
 	def Init(self):
+		''' Overwrite this in a derived class if needed '''
 		pass
 
 	def Stop(self):
+		''' Overwrite this in a derived class if needed '''
 		self._stop_.set()
 
 	def Validate(self):
+		''' Overwrite this in a derived class if needed '''
 		if self.cfg is None or len(self.cfg) == 0:
 			raise WafException("Remote: There is no config defined")
 
 	def Send(self, code):
+		''' Overwrite this in a derived class if needed '''
 		pass

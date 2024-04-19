@@ -34,7 +34,7 @@ DEFAULT_LIRC_INET_PORT = 8765
 
 class lirc(Remote):
 	'Send/receive IR codes with lirc'
-	def __init__(self, cfg:dict, rx_fifo):
+	def __init__(self, cfg:dict, rx_fifo:queue.Queue):
 		super().__init__(cfg, rx_fifo)
 		self.socket_addr = cfg.get('host', None)
 		if self.socket_addr is not None:
@@ -92,7 +92,7 @@ class LircDummy():
 SOCKET_BUFER=256
 ##############################################
 class LircReceiver(threading.Thread):
-	def __init__(self, socket_type, connect, rx_fifo, stop):
+	def __init__(self, socket_type, connect, rx_fifo:queue.Queue, stop):
 		super().__init__(name='LircReceiver')
 		self._stop_ = stop
 		self.rx_fifo = rx_fifo

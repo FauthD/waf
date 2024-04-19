@@ -28,7 +28,7 @@ from . Remote import Remote
 ###########################################
 class irmp(Remote):
 	'Send/receive IR codes with irmp'
-	def __init__(self, cfg:dict, rx_fifo:queue):
+	def __init__(self, cfg:dict, rx_fifo:queue.Queue):
 		super().__init__(cfg, rx_fifo)
 		self.device = cfg.get('device', '/dev/irmp_stm32')
 		self._irmp = Irmp.IrmpHidRaw(self.device)
