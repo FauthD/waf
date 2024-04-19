@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # with activity fun -> waf
-#	WIP
-
-# 
+#
 # This file is part of the waf distribution (https://github.com/fauthd/waf).
 # Copyright (c) 2024 Dieter Fauth.
 # 

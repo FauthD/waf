@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#	WIP
 # 
 # This file is part of the waf distribution (https://github.com/fauthd/waf).
 # Copyright (c) 2024 Dieter Fauth.
@@ -154,9 +153,7 @@ class Device(threading.Thread):
 		with self._work:
 			self._work.notify()
 		if not self.is_alive():
-			logging.debug(f'SetState {self.name} failed! Thread is dead.')
-
-	# runs as a thread
+			logging.deb#
 	def run(self):
 		self._available.set()
 		while not self._stop_.is_set():
