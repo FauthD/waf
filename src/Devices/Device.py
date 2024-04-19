@@ -153,7 +153,8 @@ class Device(threading.Thread):
 		with self._work:
 			self._work.notify()
 		if not self.is_alive():
-			logging.deb#
+			logging.debug(f'SetState {self.name} failed! Thread is dead.')
+
 	def run(self):
 		self._available.set()
 		while not self._stop_.is_set():
