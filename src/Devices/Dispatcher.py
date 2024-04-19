@@ -19,9 +19,8 @@
 #
 
 import logging
-import time
-import os
 import threading
+from abc import abstractmethod
 
 class Dispatcher():
 	'Dispatch IR codes to device classes'
@@ -75,9 +74,11 @@ class Dispatcher():
 				self.SetState(state)
 				ret = True
 			else:
-				logging.info(f"Unknown ir code {ir_code}")
+				logging.debug(f"Unknown ir code {ir_code}")
 		return ret
 ###########################################
+	@abstractmethod
 	def SetState(self, state):
+		''' Must overwrite this in a derived class! '''
 		pass
 
