@@ -87,6 +87,7 @@ class RemotesManager():
 
 ###########################################
 	def Send(self, code):
+		logging.debug((f'  Sending: {code}'))
 		for remote in self._remotes:
 			if remote is not None:
 				remote.Send(code)
