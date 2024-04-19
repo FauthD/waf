@@ -1,0 +1,10 @@
+---
+- name: "Git clone waf"
+  git:
+    repo: "{{ WAF_REPO }}"
+    dest: "{{ WAF_PATH }}"
+    depth: 1
+    clone: yes
+    update: yes
+  when: ENABLE_WAF
+  tags: waf

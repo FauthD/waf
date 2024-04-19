@@ -1,0 +1,21 @@
+---
+- name: Install dependencies
+  include_tasks:
+    file: dependencies.yml
+  when: ENABLE_WAF
+  tags:
+    - waf
+
+- name: Install waf daemon from git
+  include_tasks:
+    file: waf.yml
+  when: ENABLE_WAF
+  tags:
+    - waf
+
+- name: System integration
+  include_tasks:
+    file: integration.yml
+  when: ENABLE_WAF
+  tags:
+    - waf

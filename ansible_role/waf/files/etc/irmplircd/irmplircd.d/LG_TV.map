@@ -1,0 +1,84 @@
+# Created by Dieter Fauth
+#
+02fb0400c400 LG_POWERON
+02fb0400c500 LG_POWEROFF
+02fb0400ce00 LG_HDMI1
+02fb0400cc00 LG_HDMI2
+02fb0400e900 LG_HDMI3
+02fb0400da00 LG_HDMI4
+02fb04005a00 LG_AV1
+02fb0400d000 LG_AV2
+02fb0400bf00 LG_COMPONENT1
+38fb042dd400 LG_COMPONENT2
+02fb0400d500 LG_RGB_PC
+02fb0400d600 LG_TUNER
+02fb04007700 LG_16_9
+02fb04007600 LG_4_3
+38fb040aaf00 LG_ZOOM1
+
+02fb04000e00 LG_SLEEP
+02fb04005b00 LG_EXIT
+
+02fb04003900 LG_NUMERIC_STAR
+02fb04009800 LG_CYCLEWINDOWS
+#
+02fb04004000 LG_UP
+02fb04004100 LG_DOWN
+02fb04004300 LG_MENU
+02fb04004400 LG_OK
+# insert below the scancode for button "Back"
+
+1000fd005600 LG_0
+1102aa015a00 LG_1
+02fb04001200 LG_2
+02fb04001300 LG_3
+3800a9005500 LG_4
+02fb04001500 LG_5
+02fb04001600 LG_6
+02fb04001700 LG_7
+02fb04001800 LG_8
+02fb04001900 LG_9
+02fb0400aa00 LG_INFO
+# LG_PLAY
+# LG_PAUSE
+# LG_PLAYPAUSE
+# LG_STOP
+# LG_RECORD
+# LG_FASTFORWARD
+# LG_REWIND
+# LG_NEXT
+# insert below the scancode for button "Prev"
+# LG_BACK
+# insert below the scancode for button "Power"
+02fb04000800 LG_POWER
+02fb04000000 LG_CHANNELUP
+02fb04000100 LG_CHANNELDOWN
+# insert below the scancode for button "PrevChannel"
+# LG_PREVIOUS
+02fb04000200 LG_VOLUMEUP
+02fb04000300 LG_VOLUMEDOWN
+02fb04000900 LG_MUTE
+# LG_SUBTITLE
+# insert below the scancode for button "Schedule"
+# LG_EPG
+# LG_CHANNEL
+# insert below the scancode for button "Commands"
+# LG_FAVORITES
+# insert below the scancode for button "Audio"
+# LG_MODE
+# insert below the scancode for button "Timers"
+# LG_TIME
+# insert below the scancode for button "Recordings"
+# LG_PVR
+# LG_SETUP
+# insert below the scancodes for buttons "User0" ... "User9"
+# LG_TEXT
+# LG_PROG1
+# LG_PROG2
+# LG_PROG3
+# LG_PROG4
+# LG_AUDIO
+# LG_VIDEO
+# LG_IMAGES
+# LG_FN
+# LG_SCREEN

@@ -1,0 +1,22 @@
+---
+- name: "Ensure log dir exists"
+  file:
+    path: "{{WAF_LOGPATH}}"
+    state: directory
+    group: root
+    owner: root
+    mode: "0754"
+  when: ENABLE_WAF
+  tags: waf
+
+- name: "Create the log file with ownership"
+  file:
+    path: "{{WAF_LOGPATH}}/{{WAF_LOGFILE}}"
+    state: touch
+    owner: "{{ WAF_USER }}"
+    group: "{{ WAF_GROUP }}"
+    mode: "644"
+    modification_time: preserve
+    access_time: preserve
+  when: ENABLE_WAF
+  tags: waf

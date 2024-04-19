@@ -1,0 +1,40 @@
+---
+- name: "Create dir for waf"
+  file:
+    path: "{{WAF_PATH}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: ENABLE_WAF
+  tags:
+    - waf
+
+- name: "Install dependend software via apt"
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    cache_valid_time: 600
+  with_items:
+     "{{ WAF_DEPENDENCY }}"
+  when: ENABLE_WAF
+  tags: waf
+
+- name: "Install dependencies in /usr/local/bin"
+  copy:
+    src: "files/{{item}}"
+    dest: "/{{item}}"
+    owner: root
+    group: root
+    mode: "0755"
+  with_items:
+    - usr/local/bin/svdrpsend
+  when: ENABLE_WAF
+  tags: waf
+
+- name: "Prepare logs"
+  include_tasks:
+    file: log.yml
+  when: ENABLE_WAF
+  tags:
+    - waf

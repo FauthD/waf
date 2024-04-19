@@ -1,0 +1,44 @@
+---
+- name: "Adding waf user to groups"
+  user:
+    name: "{{ WAF_USER }}"
+    groups: gpio,spi,i2c,syslog,plugdev,dialout
+    append: yes
+  when: ENABLE_WAF
+  tags: waf
+
+- name: Install specified python requirements in indicated (virtualenv)
+  ansible.builtin.pip:
+    requirements: "{{WAF_PATH}}/requirements.txt"
+    virtualenv: "{{WAF_PATH}}/.venv"
+    virtualenv_python: python3
+  # become: true
+  # become_user: "{{ WAF_USER }}"
+  environment:
+    SETUPTOOLS_USE_DISTUTILS: stdlib
+  when: ENABLE_WAF
+  tags:
+    - waf
+
+- name: "Create systemd and udev files"
+  template:
+    src: "templates/{{item}}.j2"
+    dest: "/{{item}}"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items:
+    - etc/systemd/system/waf.service
+    - etc/udev/rules.d/99-io.rules
+    - etc/udev/rules.d/70-irmp.rules
+  when: ENABLE_WAF
+  tags: waf
+
+- name: "Make sure waf is running"
+  systemd:
+    name: waf
+    state: started
+    enabled: yes 
+    daemon_reload: yes
+  when: ENABLE_WAF
+  tags: waf

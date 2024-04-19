@@ -1,0 +1,18 @@
+#{{ansible_managed}}
+
+[Unit]
+Description=daemon to control living room devices
+After=network.target
+
+[Service]
+User={{WAF_USER}}
+Group={{WAF_GROUP}}
+
+#source {{WAF_PATH}}/venv/bin/activate
+WorkingDirectory={{ WAF_PATH }}
+ExecStart=/usr/bin/env .venv/bin/python src/waf.py --logpath="{{WAF_LOGPATH}}/{{WAF_LOGFILE}}"
+KillMode=Process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

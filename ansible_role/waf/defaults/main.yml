@@ -1,0 +1,17 @@
+
+ENABLE_WAF: false
+
+WAF_USER: "wheel"
+WAF_GROUP: "wheel"
+
+WAF_PATH: "/usr/local/lib/waf"
+WAF_REPO: "https://github.com/FauthD/waf"
+
+WAF_LOGPATH:  "/var/log"
+WAF_LOGFILE:  "waf.log"
+
+WAF_DEPENDENCY:
+  - git
+  - python3
+  - virtualenv
+
