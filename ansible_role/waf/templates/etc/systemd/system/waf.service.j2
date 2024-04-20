@@ -10,7 +10,7 @@ Group={{WAF_GROUP}}
 
 #source {{WAF_PATH}}/venv/bin/activate
 WorkingDirectory={{ WAF_PATH }}
-ExecStart=/usr/bin/env .venv/bin/python src/waf.py --logpath="{{WAF_LOGPATH}}/{{WAF_LOGFILE}}"
+ExecStart=/usr/bin/env .venv/bin/python src/waf.py --logpath="{{WAF_LOGPATH}}/{{WAF_LOGFILE}}" --logLevel="{{WAF_LOGLEVEL}}"
 KillMode=Process
 Restart=on-failure
 

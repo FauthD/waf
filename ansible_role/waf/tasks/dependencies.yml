@@ -32,9 +32,3 @@
   when: ENABLE_WAF
   tags: waf
 
-- name: "Prepare logs"
-  include_tasks:
-    file: log.yml
-  when: ENABLE_WAF
-  tags:
-    - waf

@@ -34,6 +34,19 @@
   when: ENABLE_WAF
   tags: waf
 
+- name: "Create /etc/waf.yaml if not exists"
+  template:
+    src: "templates/{{item}}.j2"
+    dest: "/{{item}}"
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+  with_items:
+    - etc/waf.yaml
+  when: ENABLE_WAF
+  tags: waf
+
 - name: "Make sure waf is running"
   systemd:
     name: waf

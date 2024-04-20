@@ -1,0 +1,21 @@
+# "empty" waf config, just enough to startup
+# It won't do anything useful
+
+devices:
+  vdr:
+    mac: '11:22:33:44:55:66'
+    name: 'vdr'
+    class: 'Vdr'
+    IR:
+      POWER_ON: IRMP KEY_POWER2
+      POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
+
+dispatch:
+  WAF_TV: tv
+
+remotes:
+  dummy:
+    class: DummyRemote
+
+status_led:
+  class: DummyLed

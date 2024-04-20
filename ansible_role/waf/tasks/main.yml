@@ -6,9 +6,16 @@
   tags:
     - waf
 
+- name: Prepare logs
+  include_tasks:
+    file: log.yml
+  when: ENABLE_WAF
+  tags:
+    - waf
+
 - name: Install waf daemon from git
   include_tasks:
-    file: waf.yml
+    file: waf_install.yml
   when: ENABLE_WAF
   tags:
     - waf
