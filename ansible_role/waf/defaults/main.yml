@@ -7,8 +7,10 @@ WAF_GROUP: "wheel"
 WAF_PATH: "/usr/local/lib/waf"
 WAF_REPO: "https://github.com/FauthD/waf"
 
-WAF_LOGPATH:  "/var/log"
+WAF_LOGPATH:  "/var/log/waf"
 WAF_LOGFILE:  "waf.log"
+# 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+WAF_LOGLEVEL: "DEBUG"
 
 WAF_DEPENDENCY:
   - git

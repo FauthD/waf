@@ -3,8 +3,8 @@
   file:
     path: "{{WAF_LOGPATH}}"
     state: directory
-    group: root
-    owner: root
+    owner: "{{ WAF_USER }}"
+    group: "{{ WAF_GROUP }}"
     mode: "0754"
   when: ENABLE_WAF
   tags: waf
