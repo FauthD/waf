@@ -14,8 +14,9 @@
     virtualenv_python: python3
   # become: true
   # become_user: "{{ WAF_USER }}"
-  environment:
-    SETUPTOOLS_USE_DISTUTILS: stdlib
+  # The env below was required in python 3.10, now with 3.12 I had to remove it
+  # environment:
+  #   SETUPTOOLS_USE_DISTUTILS: stdlib
   when: ENABLE_WAF
   tags:
     - waf
