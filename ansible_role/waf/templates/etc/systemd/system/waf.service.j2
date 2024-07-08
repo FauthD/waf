@@ -12,7 +12,8 @@ Group={{WAF_GROUP}}
 WorkingDirectory={{ WAF_PATH }}
 ExecStart=/usr/bin/env .venv/bin/python src/waf.py --logpath="{{WAF_LOGPATH}}/{{WAF_LOGFILE}}" --logLevel="{{WAF_LOGLEVEL}}"
 KillMode=Process
-Restart=on-failure
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
