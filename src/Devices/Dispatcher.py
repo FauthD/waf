@@ -61,7 +61,7 @@ class Dispatcher():
 				state = self.dispatch_dict.get(f'{key}', None)
 			if state is None:
 				state = self.dispatch_dict.get(f'{remote} {code}', None)
-		return (state,int(repeat))
+		return (state,int(repeat, 16))
 
 ###########################################
 	def Dispatch_(self, ir_code:str):
