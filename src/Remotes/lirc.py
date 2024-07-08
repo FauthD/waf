@@ -103,11 +103,16 @@ class LircReceiver(threading.Thread):
 		self.start()
 
 	def __del__(self):
+		logging.debug(f'thread {self.name} __del__')
 		self.Stop()
 
 	def Stop(self):
-		self.client_socket.shutdown(socket.SHUT_RDWR)
-		self.client_socket.close()
+		logging.debug(f'thread {self.name} STOP')
+		try:
+			self.client_socket.shutdown(socket.SHUT_RDWR)
+			self.client_socket.close()
+		except Exception as e:
+			logging.debug(f"thread {self.name} - {e}")
 
 	def IsConnected(self):
 		return self.connected
@@ -237,7 +242,7 @@ class ReplyParser(Reply):
 	def __init__(self):
 		Reply.__init__(self)
 		self._state = self._State.BEGIN
-		self._lines_expected = None
+		self._lines_expected = 0
 		self._buffer = bytearray(0)
 
 	def is_completed(self) -> bool:
@@ -320,8 +325,9 @@ class ReplyParser(Reply):
 	def _line_count(self, line):
 		try:
 			self._lines_expected = int(line)
-		except ValueError:
+		except ValueError as ve:
 			self._bad_packet_exception(line)
+			logging.error(f'value error line 325, lirc.py, DF: {ve}')
 		if self._lines_expected == 0:
 			self._state = self._State.END
 		else:
