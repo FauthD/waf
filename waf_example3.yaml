@@ -1,0 +1,161 @@
+# Runing on Notebook with IRMP (My version with neopixel support)
+
+common: 
+  # Remote sends for a few millisec to long, so lets wait some time
+  REMOTE_CONTROL_TIME: 0.3
+
+devices:
+  vdr:
+    mac: '00:00:00:00:00:00'
+    name: 'vdr'
+    class: 'Vdr'
+    IR:
+      POWER_ON: OneForAll_URC7980_V1272 KEY_POWER2
+      POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
+
+  nas:
+    mac: '00:00:00:00:00:00'
+    name: 'eis'
+    class: 'Nas'
+
+  amp:
+    mac: '00:00:00:00:00:00'
+    name: "TX-NR509"
+    class: 'Onkyo'
+    PORT: 60128
+    SEND_MUTE: True
+    TV_VOLUME: 45
+    BR_VOLUME: 28
+    DLNA_VOLUME: 21
+    FMRADIO_VOLUME: 28
+    IRADIO_VOLUME: 20
+    WII_VOLUME: 27
+    CROMECAST_VOLUME: 28
+    IR:
+      POWER_ON: Onkyo_TX-NR509 ONKYO_POWERON
+      POWER_OFF: Onkyo_TX-NR509 ONKYO_POWEROFF
+      DLNA: Onkyo_TX-NR509 ONKYO_NET
+      CD: Onkyo_TX-NR509 ONKYO_TV_CD
+      BD: Onkyo_TX-NR509 ONKYO_BD_DVD
+      MUTE: Onkyo_TX-NR509 KEY_MUTE
+      # FIXME: how to handle vol+,vol- ...SetIrCommand
+
+  tv:
+    mac: '00:00:00:00:00:00'
+    name: "TV-42LM670S-ZA"
+    class: 'LG_Netcast'
+    KEY: "123456"
+    RECEIVE_MUTE: True
+    TV_VOLUME: 14
+    TV_CROMECAST: 14
+    WII_VOLUME: 7
+    IR:
+      POWER_ON: LG_TV LG_POWERON
+      POWER_OFF: LG_TV LG_POWEROFF
+      HDMI: LG_TV LG_HDMI
+      HDMI1: LG_TV LG_HDMI1
+      HDMI2: LG_TV LG_HDMI2
+      HDMI3: LG_TV LG_HDMI3
+      HDMI4: LG_TV LG_HDMI4
+      WII: LG_TV LG_COMPONENT1
+    INPUTS:
+      BLUERAY: 1
+      CROMECAST: 3
+      VDR: 4
+      # fixme: rest
+
+  blueray:
+    mac: '00:00:00:00:00:00'
+    name: 'BDP-150'
+    class: 'PanasonicBR'
+
+dispatch:
+    DF_C: dlna
+    MP3_3: dlna
+    WAF_DLNA: dlna
+    DF_B: movie
+    MP3_2: movie
+    WAF_MOVIE: movie
+    DF_A: tv
+    WAF_TV: tv
+    "OneForAll_URC7962_S1272 KEY_ZOOM": alloff
+    "OneForAll_URC6440_S1672 KEY_ZOOM": alloff
+    "OneForAll_URC7980_V0146 KEY_POWER": alloff
+    DF_POWER2: alloff
+    WAF_POWEROFF: alloff
+    WAF_POWER_OFF: alloff
+    DF_FAV: iradio
+    DF_VOL+: vol+
+    DF_VOL-: vol-
+    DF_CHANNELDOWN: chan-
+    DF_CHANNELUP: chan+
+    WAF_INETRADIO: iradio
+    WAF_RADIO: radio
+    WAF_CHROMECAST: chromecast
+    WAF_BLUERAY: blueray
+    WAF_TV2DLNA: tv2dlna
+    WAF_WII: wii
+    WAF_INETRADIO1: iradio1
+    WAF_INETRADIO2: iradio2
+    WAF_INETRADIO3: iradio3
+    WAF_INETRADIO4: iradio4
+    WAF_INETRADIO5: iradio5
+    WAF_INETRADIO6: iradio6
+    WAF_INETRADIO7: iradio7
+    WAF_INETRADIO8: iradio8
+    WAF_INETRADIO9: iradio9
+    'IRMP 15000f04c300': tv
+    'IRMP 15000f04e300': movie
+    'IRMP 15000f048300': dlna
+
+    # Modifiers:
+    WAF_TOGGLEMUTE: togglemute
+    WAF_MUTE: mute
+    WAF_UNMUTE: unmute
+    DF_MUTE: togglemute
+    KEY_MUTE: togglemute
+    WAF_USESPEAKER: usespeaker
+
+remotes:
+  lirc_local:
+    class: lirc
+    tx: False
+    socket: /tmp/lircd
+  # lirc_remote:
+  #   class: lirc
+  #   tx: False
+  #   host: regen
+  #   port: 8765
+  irmp:
+    class: irmp
+    device: /dev/irmp_stm32
+  dummy:
+    class: DummyRemote
+
+status_led:
+  delay: 0.065
+
+  #class: DummyLed
+
+# class: GpiodLed
+# GreenLed: 226    # BananaPro Pin7
+# GreenLedChip: "gpiochip0"
+# Consumer: "Waf"
+
+#    class: raspberrypi_led
+#    GreenLed: 4    # Raspberry
+  # class: IrmpLed
+  # device: /dev/irmp_stm32
+
+  class: IrmpNeopixel
+  device: /dev/irmp_stm32
+  # RGB colors for NeoPixel sweep
+  # Define as much as you have device
+  # The number is the number of busy devices
+  colors:
+    1: 30,20, 90
+    2: 0,30,40
+    3: 60,80,0
+    4: 100,40,0
+    5: 128,0,0
+

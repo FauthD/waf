@@ -1,0 +1,197 @@
+
+common: 
+  # Remote sends for a few millisec to long, so lets wait some time
+  REMOTE_CONTROL_TIME: 0.3
+
+devices:
+  vdr:
+    # mac: 'bc:5f:f4:71:0c:33'
+    # name: 'vdr'
+    mac: '4c:52:62:ba:04:5e'
+    name: 'blitz'
+    class: 'Vdr'
+    IR:
+      #POWER_ON: OneForAll_URC7980_V1272 DF_POWER2
+      POWER_OFF: OneForAll_URC7980_V1272 DF_POWEROFF
+    Commands:
+      OnTurnOn: 
+        - 'plug softhddevice ATTA'
+      OnTurnOff: 
+        - ['HITK STOP', '0.5']
+        - 'HITK power'
+
+  # nas:
+  #   mac: '90:2b:34:1f:f4:34'
+  #   name: 'eis'
+  #   class: 'Nas'
+
+  amp:
+    mac: '00:09:B0:C3:55:E8'
+    name: "TX-NR509"
+    class: 'Onkyo'
+    PORT: 60128
+    SEND_MUTE: True
+    TV_VOLUME: 45
+    BR_VOLUME: 28
+    DLNA_VOLUME: 21
+    FMRADIO_VOLUME: 28
+    IRADIO_VOLUME: 20
+    GAME1_VOLUME: 27
+    CROMECAST_VOLUME: 28
+    IR:
+      POWER_ON: Onkyo_TX-NR509 ONKYO_POWERON
+      POWER_OFF: Onkyo_TX-NR509 ONKYO_POWEROFF
+      NET: Onkyo_TX-NR509 ONKYO_NET
+      TV_CD: Onkyo_TX-NR509 ONKYO_TV_CD
+      BD_DVD: Onkyo_TX-NR509 ONKYO_BD_DVD
+      MUTE: Onkyo_TX-NR509 KEY_MUTE
+      # FIXME: how to handle vol+,vol- ...SetIrCommand
+    INPUTS:
+      movie: TV_CD
+      blueray: BD_DVD
+      dlna: NET
+    Commands:
+      OnTurnOn: 
+        - 'zone2.power=standby'
+      OnTurnOff: 
+        - 'zone2.power=standby'
+
+  tv:
+    mac: 'C0:41:F6:23:00:04'
+    name: "TV-42LM670S-ZA"
+    class: 'LG_Netcast'
+    KEY: "405855"
+    RECEIVE_MUTE: True
+    TV_VOLUME: 14
+    TV_CROMECAST: 14
+    GAME1_VOLUME: 7
+
+    IR:
+      POWER_ON: LG_TV LG_POWERON
+      POWER_OFF: LG_TV LG_POWEROFF
+      HDMI: LG_TV LG_HDMI
+      HDMI1: LG_TV LG_HDMI1
+      HDMI2: LG_TV LG_HDMI2
+      HDMI3: LG_TV LG_HDMI3
+      HDMI4: LG_TV LG_HDMI4
+      GAME1: LG_TV LG_COMPONENT1
+    INPUTS:
+      BLUERAY: HDMI1
+      CROMECAST: HDMI3
+      VDR: HDMI4
+      GAME1: GAME1
+      # fixme: rest
+
+  blueray:
+    mac: '74:5e:1c:18:49:ae'
+    name: 'BDP-150'
+    class: 'PanasonicBR'
+
+dispatch:
+    DF_C: dlna
+    MP3_3: dlna
+    WAF_DLNA: dlna
+    DF_B: movie
+    MP3_2: movie
+    WAF_MOVIE: movie
+    DF_A: tv
+    WAF_TV: tv
+    # Example for remote + key
+    "OneForAll_URC7962_S1272 KEY_ZOOM": alloff
+    "OneForAll_URC6440_S1672 KEY_ZOOM": alloff
+    "OneForAll_URC7980_V0146 KEY_POWER": alloff
+    DF_POWER2: alloff
+    WAF_POWEROFF: alloff
+    WAF_POWER_OFF: alloff
+    DF_FAV: iradio
+    DF_VOL+: vol+
+    DF_VOL-: vol-
+    DF_CHANNELDOWN: chan-
+    DF_CHANNELUP: chan+
+    WAF_INETRADIO: iradio
+    WAF_RADIO: radio
+    WAF_CHROMECAST: chromecast
+    WAF_BLUERAY: blueray
+    WAF_TV2DLNA: tv2dlna
+    WAF_GAME1: game1
+    WAF_INETRADIO1: iradio1
+    WAF_INETRADIO2: iradio2
+    WAF_INETRADIO3: iradio3
+    WAF_INETRADIO4: iradio4
+    WAF_INETRADIO5: iradio5
+    WAF_INETRADIO6: iradio6
+    WAF_INETRADIO7: iradio7
+    WAF_INETRADIO8: iradio8
+    WAF_INETRADIO9: iradio9
+    # you can also use untranslated Ir-Codes
+    'IRMP 15000f04c300': tv
+    'IRMP 15000f04e300': movie
+    'IRMP 15000f048300': dlna
+
+    # Modifiers:
+    WAF_TOGGLEMUTE: togglemute
+    WAF_MUTE: mute
+    WAF_UNMUTE: unmute
+    DF_MUTE: togglemute
+    KEY_MUTE: togglemute
+    WAF_USESPEAKER: usespeaker
+
+remotes:
+  lirc_local_rx:
+    class: lirc
+    tx: False
+    socket: /run/lirc/lircd
+  # lirc_remote:
+  #   class: lirc
+  #   tx: False
+  #   host: regen
+  #   port: 8765
+  lirc_local_tx:
+    class: lirc
+    tx: True
+    rx: False
+    socket: /run/lirc/lircd-tx
+  # lirc_remote:
+  #   class: lirc
+  #   tx: False
+  #   host: regen
+  #   port: 8765
+  # irmp:
+  #   class: irmp
+  #   device: /dev/irmp_stm32
+  # dummy:
+  #   class: DummyRemote
+
+status_led:
+  delay: 0.065
+  class: GpiodLed
+  chip: "/dev/gpiochip0" # BananaPro
+  line: 226         # BananaPro Pin7
+
+# A dummy in case you do not need any LED:
+  # class: DummyLed
+
+# LED connected to a GPIO:
+  # class: GpiodLed
+  # chip: "gpiochip0" # BananaPro
+  # line: 226         # BananaPro Pin7
+# chip: "gpiochip0" # Raspberry PI
+# line: 4           # Raspberry PI Pin 7
+
+# A LED connected to the status LED port of IRMP
+# class: IrmpLed
+# device: /dev/irmp_stm32
+
+# A NeoPixel strip with 8 leds on IRMP
+  # class: IrmpNeopixel
+  # device: /dev/irmp_stm32
+  # # RGB colors for NeoPixel sweep
+  # # Define as much as you have device
+  # # The number is the number of busy devices
+  # colors:
+  #   1: 30,20, 90
+  #   2: 0,30,40
+  #   3: 60,80,0
+  #   4: 100,40,0
+  #   5: 128,0,0
+
