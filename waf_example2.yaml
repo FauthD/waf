@@ -1,13 +1,11 @@
-
+# Running on a Banana Pi Pro
 common: 
   # Remote sends for a few millisec to long, so lets wait some time
   REMOTE_CONTROL_TIME: 0.3
 
 devices:
   vdr:
-    # mac: 'bc:5f:f4:71:0c:33'
-    # name: 'vdr'
-    mac: '4c:52:62:ba:04:5e'
+    mac: '00:00:00:00:00:00'
     name: 'blitz'
     class: 'Vdr'
     IR:
@@ -26,7 +24,7 @@ devices:
   #   class: 'Nas'
 
   amp:
-    mac: '00:09:B0:C3:55:E8'
+    mac: '00:00:00:00:00:00'
     name: "TX-NR509"
     class: 'Onkyo'
     PORT: 60128
@@ -57,10 +55,10 @@ devices:
         - 'zone2.power=standby'
 
   tv:
-    mac: 'C0:41:F6:23:00:04'
+    mac: '00:00:00:00:00:00'
     name: "TV-42LM670S-ZA"
     class: 'LG_Netcast'
-    KEY: "405855"
+    KEY: "123456"
     RECEIVE_MUTE: True
     TV_VOLUME: 14
     TV_CROMECAST: 14
@@ -83,7 +81,7 @@ devices:
       # fixme: rest
 
   blueray:
-    mac: '74:5e:1c:18:49:ae'
+    mac: '00:00:00:00:00:00'
     name: 'BDP-150'
     class: 'PanasonicBR'
 
