@@ -62,7 +62,7 @@ class VdrLocal(Device):
 		return exitstatus==0
 
 	def _SvdrPsend(self, cmd):
-		logging.debug(f'SvdrPsend {cmd}')
+		logging.debug(f'  SvdrPsend {cmd}')
 		#run_time = watchclock.Watchclock()
 		exitstatus = 1
 		command = f"svdrpsend -d {self._devicename} '{cmd}'"
@@ -71,17 +71,19 @@ class VdrLocal(Device):
 		return exitstatus==0
 
 	def TurnOn(self):
-		logging.debug('StartLocalVdr')
-		pexpect.run('vdr_start.sh')
+		super().TurnOn()
+		pexpect.run('systemctl start vdr.service')
 		self.SvdrPsend('PING')
-		#time.sleep(0.5)
+		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
-		##self._On = self.SvdrPsend('VOLU 150')    # keep startup volume
-		self.RunSvdrPsend('OnTurnOn')
+		if self._On:
+			self.RunCommands('OnTurnOn')
 
 	def TurnOff(self):
+		super().TurnOff()
 		if self.IsRunning():
-			self.RunSvdrPsend('OnTurnOff')
+			self.RunCommands('OnTurnOff')
+		self._On = False
 
 	def WatchTV(self):
 		self.TurnOn()
