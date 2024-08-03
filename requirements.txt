@@ -1,6 +1,5 @@
 pyyaml
 pexpect
-icmplib
 wakeonlan
 gpiod
 systemd_stopper
