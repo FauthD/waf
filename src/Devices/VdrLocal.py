@@ -35,22 +35,12 @@ class VdrLocal(Device):
 	def RepeatStart(self):
 		pass
 
-	def RunSvdrPsend(self, DictName):
-		if self._SvdrPsend_Dict:
-			cmds = self._SvdrPsend_Dict.get(DictName, None)
-			if cmds:
-				for cmd in cmds:
-					if type(cmd) is list:
-						command,delay = cmd
-					else:
-						command = cmd
-						delay = '0.1'
-					if len(command):
-						self._SvdrPsend(command)
-					time.sleep(float(delay))
+	# Called by RunCommands to process the Commands from yaml
+	def RunCommand(self, command):
+		self._SvdrPsend(command)
 
 	def SvdrPsend(self, cmd):
-		to = Timeout(40)
+		to = Timeout(60)
 		exitstatus = 1
 		while exitstatus!=0:
 			exitstatus = not self._SvdrPsend(cmd)
@@ -63,16 +53,14 @@ class VdrLocal(Device):
 
 	def _SvdrPsend(self, cmd):
 		logging.debug(f'  SvdrPsend {cmd}')
-		#run_time = watchclock.Watchclock()
 		exitstatus = 1
-		command = f"svdrpsend -d {self._devicename} '{cmd}'"
+		command = f"svdrpsend '{cmd}'"
 		(command_output, exitstatus) = pexpect.run(command, withexitstatus=True)
-		#logging.debug('Svdrpsend delay {0:.1f} secs exit={1}'.format(run_time.getTime(), exitstatus))
 		return exitstatus==0
 
 	def TurnOn(self):
 		super().TurnOn()
-		pexpect.run('systemctl start vdr.service')
+		pexpect.run('sudo /bin/systemctl --no-block start vdr.service')
 		self.SvdrPsend('PING')
 		time.sleep(0.5)
 		self._On = self.SvdrPsend('REMO on')
@@ -81,7 +69,7 @@ class VdrLocal(Device):
 
 	def TurnOff(self):
 		super().TurnOff()
-		if self.IsRunning():
+		if self._On:
 			self.RunCommands('OnTurnOff')
 		self._On = False
 

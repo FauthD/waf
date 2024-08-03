@@ -31,7 +31,8 @@
   with_items:
     - etc/systemd/system/waf.service
     - etc/udev/rules.d/99-io.rules
-    - etc/udev/rules.d/70-irmp.rules
+# now using the rule from irmpd packet
+#    - etc/udev/rules.d/70-irmp.rules
   when: ENABLE_WAF
   tags: waf
 
@@ -46,6 +47,16 @@
   with_items:
     - etc/waf.yaml
   when: ENABLE_WAF
+  tags: waf
+
+- name: "Allow {{WAF_USER}} to run systemctl"
+  community.general.sudoers:
+    name: waf
+    user: "{{WAF_USER}}"
+    commands:
+      - /bin/systemctl --no-block start vdr.service
+    nopassword: true
+  when: ENABLE_WAF and ENABLE_VDR
   tags: waf
 
 - name: "Make sure waf is running"

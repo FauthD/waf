@@ -6,5 +6,6 @@
     depth: 1
     clone: yes
     update: yes
+    force: yes
   when: ENABLE_WAF
   tags: waf

@@ -4,6 +4,8 @@ ENABLE_WAF: false
 WAF_USER: "wheel"
 WAF_GROUP: "wheel"
 
+ENABLE_VDR: false
+
 WAF_PATH: "/usr/local/lib/waf"
 WAF_REPO: "https://github.com/FauthD/waf"
 
