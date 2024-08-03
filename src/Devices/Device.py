@@ -18,10 +18,10 @@
 #
 
 
+import pexpect
 import time
 import logging
 import threading
-from icmplib import ping
 from wakeonlan import send_magic_packet
 
 from Helpers import States,Modifier,Timeout,Watchclock
@@ -108,15 +108,26 @@ class Device(threading.Thread):
 		''' Overwrite this in a derived class if needed '''
 		pass
 
+	def IsRunning(self):
+		ret = False
+		try:
+			(command_output, exitstatus) = pexpect.run(f'ping -i 0.3 -c1 {self._devicename}', withexitstatus=True)
+			ret = (exitstatus==0)
+		except Exception as ex:
+			logging.critical(f'Failed pinging {self.name}: {ex}')
+		return ret
+
 	def WaitForHost(self):
-		logging.debug(f' Wait for {self.name}')
+		logging.debug(f' Wait for {self.getName()}')
 		self._timeout.Reset()
+		exitstatus = 1
 		count = 0
 		ret = False
 		try:
 			while not self._timeout.isExpired() and not self._stop_.is_set():
-				host = ping(self._devicename, count=1, interval=1, timeout=0.5, privileged=False)
-				if host.is_alive:
+				time.sleep(0.5)
+				(command_output, exitstatus) = pexpect.run(f'ping -i 0.3 -c1 {self._devicename}', withexitstatus=True)
+				if exitstatus==0:
 					ret = True
 					break
 				count += 1 # do not send the repeat too often
@@ -132,14 +143,6 @@ class Device(threading.Thread):
 		else:
 			logging.debug(f'Failed pinging {self.name} after {self.getTime():.1f} secs')
 		return ret
-
-	def IsRunning(self):
-		try:
-			host = ping(self._devicename, count=1, interval=1, timeout=1, privileged=False)
-		except Exception as ex:
-			logging.critical(f'Failed pinging {self.name}: {ex}')
-			return False
-		return host.is_alive
 
 	def SetState(self, state):
 		self._start_time.Reset()
